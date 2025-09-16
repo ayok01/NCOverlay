@@ -47,6 +47,12 @@ export default defineConfig({
         }
 
         break
+
+      case 'safari':
+        // Safari specific settings
+        // Note: Safari doesn't support sidePanel API
+        // Safari uses Manifest V2 by default in WXT
+        break
     }
 
     return {

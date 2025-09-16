@@ -10,6 +10,8 @@ export function SidePanelButton() {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
+    if (webext.isSafari || !webext.sidePanel) return
+
     webext.getCurrentActiveTabId().then(async (tabId) => {
       if (tabId == null) return
 
@@ -21,6 +23,8 @@ export function SidePanelButton() {
   }, [])
 
   function onPress() {
+    if (webext.isSafari || !webext.sidePanel) return
+
     const enabled = !open
 
     if (tabId != null) {
@@ -32,6 +36,11 @@ export function SidePanelButton() {
     }
 
     setOpen(enabled)
+  }
+
+  // Don't render the button on Safari
+  if (webext.isSafari || !webext.sidePanel) {
+    return null
   }
 
   return (

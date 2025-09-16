@@ -133,10 +133,12 @@ async function main() {
       // サイドパネル
       case 'sidepanel':
         port.onDisconnect.addListener(() => {
-          webext.sidePanel.setOptions({
-            enabled: false,
-            tabId,
-          })
+          if (!webext.isSafari && webext.sidePanel) {
+            webext.sidePanel.setOptions({
+              enabled: false,
+              tabId,
+            })
+          }
         })
 
         break
@@ -148,11 +150,13 @@ async function main() {
     if (tabId === webext.tabs.TAB_ID_NONE) return
 
     if (!(await sendExtensionMessage('content:getNcoId', null, tabId))) {
-      webext.sidePanel.setOptions({
-        enabled: false,
-        path: webext.sidePanel.path,
-        tabId,
-      })
+      if (!webext.isSafari && webext.sidePanel) {
+        webext.sidePanel.setOptions({
+          enabled: false,
+          path: webext.sidePanel.path,
+          tabId,
+        })
+      }
     }
   })
 
@@ -189,7 +193,9 @@ async function main() {
   })
 
   // サイドパネル
-  webext.sidePanel.setOptions({ enabled: false })
+  if (!webext.isSafari && webext.sidePanel) {
+    webext.sidePanel.setOptions({ enabled: false })
+  }
 
   // ポップアップをウィンドウで開く (テスト用)
   // webext.action.setPopup({ popup: '' })
