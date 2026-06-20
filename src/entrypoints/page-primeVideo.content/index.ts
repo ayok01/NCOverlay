@@ -65,39 +65,54 @@ async function main() {
     logger.log('titleText', titleText)
     logger.log('subtitleText', subtitleText)
 
-    if (!titleText) {
-      return null
+    let catalogQueueItem: [string, Catalog] | undefined
+
+    if (titleText) {
+      const {
+        season,
+        episode,
+        subtitle,
+      }: {
+        season?: string
+        episode?: string
+        subtitle?: string
+      } =
+        (
+          subtitleText?.match(SUBTITLE_REGEXP) ??
+          subtitleText?.match(SUBTITLE_SHORT_REGEXP)
+        )?.groups ?? {}
+
+      const seasonNum = season ? Number(season) : -1
+      const episodeNum = episode ? Number(episode) : -1
+
+      catalogQueueItem = catalogQueue.find((val) => {
+        if (val.type === 'MOVIE') {
+          return val.title === titleText && !subtitleText
+        } else {
+          return (
+            val.seriesTitle === titleText &&
+            val.seasonNumber === seasonNum &&
+            val.episodeNumber === episodeNum &&
+            val.title === subtitle
+          )
+        }
+      })
     }
 
-    const {
-      season,
-      episode,
-      subtitle,
-    }: {
-      season?: string
-      episode?: string
-      subtitle?: string
-    } =
-      (
-        subtitleText?.match(SUBTITLE_REGEXP) ??
-        subtitleText?.match(SUBTITLE_SHORT_REGEXP)
-      )?.groups ?? {}
+    // DOMタイトル要素が無いプレイヤー (新UI/Safari) ではURLのentityIdで引き当てる
+    if (!catalogQueueItem) {
+      const entityId = window.location.pathname.match(
+        /\/(?:gp\/video\/)?detail\/([^/?#]+)/
+      )?.[1]
 
-    const seasonNum = season ? Number(season) : -1
-    const episodeNum = episode ? Number(episode) : -1
+      if (entityId) {
+        const catalog = catalogQueue.get(entityId)
 
-    const catalogQueueItem = catalogQueue.find((val) => {
-      if (val.type === 'MOVIE') {
-        return val.title === titleText && !subtitleText
-      } else {
-        return (
-          val.seriesTitle === titleText &&
-          val.seasonNumber === seasonNum &&
-          val.episodeNumber === episodeNum &&
-          val.title === subtitle
-        )
+        if (catalog) {
+          catalogQueueItem = [entityId, catalog]
+        }
       }
-    })
+    }
 
     if (!catalogQueueItem) {
       return null
