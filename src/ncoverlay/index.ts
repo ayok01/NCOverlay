@@ -1,24 +1,24 @@
-import type { Runtime } from 'webextension-polyfill'
+import type { MarkerKey } from '@/constants/markers'
+import type { Browser } from '@/utils/webext'
+import type { NCOPatcherFunctions } from './patcher'
 
 import equal from 'fast-deep-equal'
 
 import { MARKERS } from '@/constants/markers'
-
+import { SLOTS_REFRESH_SETTINGS_KEYS } from '@/constants/settings'
 import { logger } from '@/utils/logger'
-import { uid } from '@/utils/uid'
 import { webext } from '@/utils/webext'
 import { settings } from '@/utils/settings/extension'
-import { sendUtilsMessage } from '@/utils/extension/messaging'
 
-import { NCOState } from './state'
-import { NCOSearcher } from './searcher'
-import { NCORenderer } from './renderer'
 import { NCOKeyboard } from './keyboard'
-import { ncoMessenger } from './messaging'
+import { NCORenderer } from './renderer'
+import { NCOSearcher } from './searcher'
+import { NCOState } from './state'
 
-import './style.scss'
+import './style.css'
+import { onExtensionMessage, sendExtensionMessage } from '@/messaging/extension'
 
-export type NCOverlayEventMap = {
+export interface NCOverlayEventMap {
   playing: (this: NCOverlay) => void
   pause: (this: NCOverlay) => void
   seeked: (this: NCOverlay) => void
@@ -32,20 +32,24 @@ export type NCOverlayEventMap = {
  * NCOverlay
  */
 export class NCOverlay {
-  readonly id: string
+  readonly id: number
   readonly state: NCOState
   readonly searcher: NCOSearcher
   readonly renderer: NCORenderer
   readonly keyboard: NCOKeyboard
 
-  readonly #storageOnChangeRemoveListeners: (() => void)[] = []
-  readonly #port: Runtime.Port
+  readonly #removeListenerCallbacks: (() => void)[] = []
+  readonly #port: Browser.runtime.Port
 
-  constructor(video: HTMLVideoElement) {
-    this.id = `${Date.now()}.${uid()}`
+  constructor(
+    tabId: number,
+    video: HTMLVideoElement,
+    functions?: NCOPatcherFunctions
+  ) {
+    this.id = tabId
     this.state = new NCOState(this.id)
     this.searcher = new NCOSearcher(this.state)
-    this.renderer = new NCORenderer(video)
+    this.renderer = new NCORenderer(video, functions)
     this.keyboard = new NCOKeyboard(this.state, {
       jumpMarker: (...args) => this.jumpMarker(...args),
     })
@@ -59,7 +63,7 @@ export class NCOverlay {
 
     this.#registerEventListener()
 
-    sendUtilsMessage('setBadge', { text: null })
+    sendExtensionMessage('bg:setBadge', { text: null })
 
     // 既にメタデータ読み込み済みの場合
     if (HTMLMediaElement.HAVE_METADATA <= this.renderer.video.readyState) {
@@ -81,44 +85,54 @@ export class NCOverlay {
     this.#unregisterEventListener()
     this.removeAllEventListeners()
 
-    sendUtilsMessage('setBadge', { text: null })
+    sendExtensionMessage('bg:setBadge', { text: null })
   }
 
   async clear() {
     await this.state.clear()
     this.renderer.clear()
 
-    await sendUtilsMessage('setBadge', { text: null })
+    await sendExtensionMessage('bg:setBadge', { text: null })
   }
 
   /**
    * 指定したマーカーの位置にジャンプ
    */
-  async jumpMarker(
-    marker: number | (typeof MARKERS)[number]['shortLabel'] | null
-  ) {
+  async jumpMarker(key: MarkerKey | null) {
     const oldDetails = await this.state.get('slotDetails')
     const newDetails = structuredClone(oldDetails)
 
-    if (marker === null) {
-      newDetails?.forEach((detail) => {
-        delete detail.offsetMs
-      })
-    } else {
-      const markerIdx =
-        typeof marker === 'string'
-          ? MARKERS.findIndex((v) => v.shortLabel === marker)
-          : marker
-
-      const currentTimeMs = this.renderer.video.currentTime * 1000
-
-      newDetails?.forEach((detail) => {
-        const marker = detail.markers?.[markerIdx]
-
-        if (marker) {
-          detail.offsetMs = marker * -1 + currentTimeMs
+    if (key === null) {
+      if (newDetails) {
+        for (const detail of newDetails) {
+          delete detail.offsetMs
         }
-      })
+      }
+    } else {
+      const markerIdx = MARKERS.findIndex((v) => v.key === key)
+
+      const currentTimeMs = this.renderer.getCurrentTime() * 1000
+
+      if (newDetails) {
+        const adjustJikkyoOffset = await settings.get(
+          'settings:comment:adjustJikkyoOffset'
+        )
+
+        for (const detail of newDetails) {
+          if (
+            detail.type !== 'jikkyo' ||
+            (adjustJikkyoOffset && detail.chapters.length)
+          ) {
+            continue
+          }
+
+          const marker = detail.markers[markerIdx]
+
+          if (marker) {
+            detail.offsetMs = currentTimeMs - marker
+          }
+        }
+      }
 
       await this.state.remove('offset')
     }
@@ -129,7 +143,7 @@ export class NCOverlay {
   /**
    * 描画するコメントデータを更新する
    */
-  async #updateRendererThreads() {
+  #updateRendererThreads = async () => {
     const threads = await this.state.getThreads()
 
     this.renderer.setThreads(threads)
@@ -140,14 +154,15 @@ export class NCOverlay {
    * イベントリスナー
    */
   #videoEventListeners: {
-    [type in keyof HTMLVideoElementEventMap]?: (evt: Event) => void
+    [P in keyof HTMLVideoElementEventMap]?: (evt: Event) => void
   } = {
     loadedmetadata: () => {
+      logger.log('loadedmetadata')
+
       this.#trigger('loadedmetadata')
     },
 
     playing: () => {
-      this.renderer.stop()
       this.renderer.start()
 
       this.#trigger('playing')
@@ -160,13 +175,17 @@ export class NCOverlay {
     },
 
     seeked: () => {
-      this.renderer.render()
+      this.renderer.rerender()
 
       this.#trigger('seeked')
     },
 
     timeupdate: () => {
       this.#trigger('timeupdate')
+    },
+
+    ratechange: () => {
+      this.renderer.updateTime()
     },
   }
 
@@ -182,15 +201,14 @@ export class NCOverlay {
       this.renderer.video.addEventListener(type, listener)
     }
 
-    /**
-     * 描画データの更新
-     */
-    const updateRenderer = () => {
-      this.#updateRendererThreads()
+    for (const key of SLOTS_REFRESH_SETTINGS_KEYS) {
+      this.#removeListenerCallbacks.push(
+        settings.onChange(key, this.#updateRendererThreads)
+      )
     }
 
     // ストレージの監視
-    this.#storageOnChangeRemoveListeners.push(
+    this.#removeListenerCallbacks.push(
       // 設定 (コメント:表示サイズ)
       settings.watch('settings:comment:scale', (scale) => {
         this.renderer.setOptions({
@@ -211,52 +229,12 @@ export class NCOverlay {
         this.renderer.setFps(fps)
       }),
 
-      // 設定（コメント:コメントアシストの表示を抑制）
-      settings.onChange(
-        'settings:comment:hideAssistedComments',
-        updateRenderer
-      ),
-
-      // 設定 (NG設定)
-      settings.onChange('settings:ng:words', updateRenderer),
-      settings.onChange('settings:ng:commands', updateRenderer),
-      settings.onChange('settings:ng:ids', updateRenderer),
-      settings.onChange('settings:ng:largeComments', updateRenderer),
-      settings.onChange('settings:ng:fixedComments', updateRenderer),
-      settings.onChange('settings:ng:coloredComments', updateRenderer),
-
       // 検索ステータス
-      this.state.onChange('status', async (status) => {
-        const slotDetails = (await this.state.get('slotDetails')) ?? []
-
-        const loadingCounts = slotDetails.filter(
-          (detail) => detail.status === 'loading'
-        ).length
-        const successCounts = slotDetails.filter(
-          (detail) => detail.status === 'ready'
-        ).length
-        const errorCounts = slotDetails.filter(
-          (detail) => detail.status === 'error'
-        ).length
-
-        sendUtilsMessage('setBadge', {
-          text:
-            (loadingCounts && loadingCounts.toString()) ||
-            (successCounts && successCounts.toString()) ||
-            (errorCounts && errorCounts.toString()) ||
-            null,
-          color:
-            (loadingCounts && 'yellow') ||
-            (successCounts && 'green') ||
-            (errorCounts && 'red') ||
-            undefined,
-        })
-
+      this.state.onChange('status', (status) => {
         if (
           (status === 'ready' || status === 'error') &&
           !this.renderer.video.paused
         ) {
-          this.renderer.stop()
           this.renderer.start()
         }
       }),
@@ -267,56 +245,89 @@ export class NCOverlay {
       }),
 
       // スロット
-      this.state.onChange('slots', updateRenderer),
+      this.state.onChange('slots', this.#updateRendererThreads),
 
       // スロットの情報
       this.state.onChange('slotDetails', (newValue, oldValue) => {
-        const newVal = newValue?.map((v) => ({
-          id: v.id,
-          status: v.status,
-          offsetMs: v.offsetMs,
-          translucent: v.translucent,
-          hidden: v.hidden,
+        const newVal = newValue?.map((val) => ({
+          id: val.id,
+          status: val.status,
+          offsetMs: val.offsetMs,
+          translucent: val.translucent,
+          hidden: val.hidden,
+          skip: val.skip,
         }))
-
-        const oldVal = oldValue?.map((v) => ({
-          id: v.id,
-          status: v.status,
-          offsetMs: v.offsetMs,
-          translucent: v.translucent,
-          hidden: v.hidden,
+        const oldVal = oldValue?.map((val) => ({
+          id: val.id,
+          status: val.status,
+          offsetMs: val.offsetMs,
+          translucent: val.translucent,
+          hidden: val.hidden,
+          skip: val.skip,
         }))
 
         if (!equal(newVal, oldVal)) {
-          updateRenderer()
+          this.#updateRendererThreads()
+
+          // バッジ
+          const displayedSlotDetails =
+            newVal?.filter((v) => !v.hidden && !v.skip) ?? []
+
+          const loadingCounts = displayedSlotDetails.filter(
+            (detail) => detail.status === 'loading'
+          ).length
+          const successCounts = displayedSlotDetails.filter(
+            (detail) => detail.status === 'ready'
+          ).length
+          const errorCounts = displayedSlotDetails.filter(
+            (detail) => detail.status === 'error'
+          ).length
+
+          sendExtensionMessage('bg:setBadge', {
+            text:
+              (loadingCounts && loadingCounts.toString()) ||
+              (successCounts && successCounts.toString()) ||
+              (errorCounts && errorCounts.toString()) ||
+              null,
+            color:
+              (loadingCounts && 'yellow') ||
+              (successCounts && 'green') ||
+              (errorCounts && 'red') ||
+              undefined,
+          })
         }
+      }),
+
+      // メッセージ (インスタンスのID取得)
+      onExtensionMessage('content:getNcoId', () => {
+        return this.id
+      }),
+
+      // メッセージ (現在の再生時間を取得)
+      onExtensionMessage('content:getCurrentTime', () => {
+        return this.renderer.getCurrentTime()
+      }),
+
+      // メッセージ (再描画)
+      onExtensionMessage('content:rerender', () => {
+        this.renderer.rerender()
+      }),
+
+      // メッセージ (再読み込み)
+      onExtensionMessage('content:reload', () => {
+        this.#trigger('reload')
+      }),
+
+      // メッセージ (マーカー)
+      onExtensionMessage('content:jumpMarker', ({ data }) => {
+        return this.jumpMarker(data)
+      }),
+
+      // メッセージ (スクリーンショット)
+      onExtensionMessage('content:capture', ({ data }) => {
+        return this.renderer.capture(data)
       })
     )
-
-    // メッセージ (インスタンスのID取得)
-    ncoMessenger.onMessage('getId', () => {
-      return this.id
-    })
-
-    // メッセージ (現在の再生時間を取得)
-    ncoMessenger.onMessage('getCurrentTime', () => {
-      return this.renderer.video.currentTime
-    })
-
-    // メッセージ (再読み込み)
-    ncoMessenger.onMessage('reload', () => {
-      this.#trigger('reload')
-    })
-
-    // メッセージ (マーカー)
-    ncoMessenger.onMessage('jumpMarker', ({ data }) => {
-      return this.jumpMarker(data)
-    })
-
-    // メッセージ (スクリーンショット)
-    ncoMessenger.onMessage('capture', ({ data }) => {
-      return this.renderer.capture(data)
-    })
   }
 
   /**
@@ -330,38 +341,38 @@ export class NCOverlay {
       this.renderer.video.removeEventListener(type, listener)
     }
 
-    while (this.#storageOnChangeRemoveListeners.length) {
-      this.#storageOnChangeRemoveListeners.pop()?.()
+    while (this.#removeListenerCallbacks.length) {
+      this.#removeListenerCallbacks.pop()?.()
     }
-
-    ncoMessenger.removeAllListeners()
   }
 
   #listeners: {
-    [type in keyof NCOverlayEventMap]?: NCOverlayEventMap[type][]
+    [P in keyof NCOverlayEventMap]?: NCOverlayEventMap[P][]
   } = {}
 
-  #trigger<Type extends keyof NCOverlayEventMap>(type: Type) {
-    this.#listeners[type]?.forEach((listener) => {
-      try {
-        listener.call(this)
-      } catch (err) {
-        logger.error(type, err)
+  #trigger<T extends keyof NCOverlayEventMap>(type: T) {
+    if (this.#listeners[type]) {
+      for (const listener of this.#listeners[type]) {
+        try {
+          listener.call(this)
+        } catch (err) {
+          logger.error(type, err)
+        }
       }
-    })
+    }
   }
 
-  addEventListener<Type extends keyof NCOverlayEventMap>(
-    type: Type,
-    callback: NCOverlayEventMap[Type]
+  addEventListener<T extends keyof NCOverlayEventMap>(
+    type: T,
+    callback: NCOverlayEventMap[T]
   ) {
     this.#listeners[type] ??= []
-    this.#listeners[type]!.push(callback)
+    this.#listeners[type].push(callback)
   }
 
-  removeEventListener<Type extends keyof NCOverlayEventMap>(
-    type: Type,
-    callback: NCOverlayEventMap[Type]
+  removeEventListener<T extends keyof NCOverlayEventMap>(
+    type: T,
+    callback: NCOverlayEventMap[T]
   ) {
     this.#listeners[type] = this.#listeners[type]?.filter(
       (cb) => cb !== callback

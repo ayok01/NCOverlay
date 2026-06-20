@@ -1,8 +1,7 @@
-import { useCallback } from 'react'
 import { Button, ButtonGroup, Divider, Input, cn } from '@heroui/react'
-import { RotateCcwIcon, CheckIcon } from 'lucide-react'
+import { CheckIcon, RotateCcwIcon } from 'lucide-react'
 
-export type OffsetControlProps = {
+export interface OffsetControlProps {
   value: number
   isValueChanged?: boolean
   compact?: boolean
@@ -10,20 +9,20 @@ export type OffsetControlProps = {
   onApply: () => void
 }
 
-export const OffsetControl: React.FC<OffsetControlProps> = ({
+export function OffsetControl({
   value,
   onValueChange,
   onApply,
   isValueChanged,
   compact,
-}) => {
-  const onValueChangeInput = useCallback((val: string) => {
+}: OffsetControlProps) {
+  function onValueChangeInput(val: string) {
     onValueChange(Number(val))
-  }, [])
+  }
 
-  const onPressReset = useCallback(() => {
+  function onPressReset() {
     onValueChange(0)
-  }, [])
+  }
 
   return (
     <div className={cn('flex h-fit gap-2', compact ? 'flex-row' : 'flex-col')}>
@@ -34,7 +33,7 @@ export const OffsetControl: React.FC<OffsetControlProps> = ({
               key={sec}
               className={cn(
                 'min-w-8 px-2',
-                'border-divider [&:not(:first-child)]:border-l-1'
+                'border-divider not-first:border-l-1'
               )}
               onPress={() => onValueChange(value + sec)}
             >
@@ -45,7 +44,7 @@ export const OffsetControl: React.FC<OffsetControlProps> = ({
 
         <Input
           classNames={{
-            inputWrapper: 'border-divider border-1 shadow-none',
+            inputWrapper: 'border-1 border-divider shadow-none',
             input: [
               'text-right',
               '[appearance:textfield]',
@@ -67,7 +66,7 @@ export const OffsetControl: React.FC<OffsetControlProps> = ({
               key={sec}
               className={cn(
                 'min-w-8 px-2',
-                'border-divider [&:not(:first-child)]:border-l-1'
+                'border-divider not-first:border-l-1'
               )}
               onPress={() => onValueChange(value + sec)}
             >

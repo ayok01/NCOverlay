@@ -1,41 +1,60 @@
-import type { DeepPartial, UnionToIntersection } from 'utility-types'
-import type { V1Thread } from '@xpadev-net/niconicomments'
-import type { BuildSearchQueryInput } from '@midra/nco-api/search/lib/buildSearchQuery'
+import type { JikkyoChannelId } from '@midra/nco-utils/types/api/constants'
+import type {
+  V1Comment,
+  V1Thread,
+} from '@midra/nco-utils/types/api/niconico/v1/threads'
+import type { DeepPartial } from 'utility-types'
 import type { VodKey } from '@/types/constants'
+import type {
+  JikkyoChapter,
+  VideoChapter,
+} from '@/utils/api/jikkyo/findChapters'
+import type { JikkyoMarker } from '@/utils/api/jikkyo/findMarkers'
 import type { StorageOnChangeCallback } from '@/utils/storage'
-import type { PlayingInfo } from '@/ncoverlay/patcher'
+import type { NCOSearcherAutoSearchArgs } from './searcher'
 
 import equal from 'fast-deep-equal'
 
-import { storage } from '@/utils/storage/extension'
-import { settings } from '@/utils/settings/extension'
+import {
+  COLOR_CODE_REGEXP,
+  NICONICO_COLOR_COMMANDS,
+  NICONICO_DEFAULT_DURATION,
+} from '@/constants'
 import { deepmerge } from '@/utils/deepmerge'
-import { getNgSettings } from '@/utils/extension/getNgSettings'
-import { isNgComment } from '@/utils/extension/applyNgSetting'
-import { findAssistedComments } from '@/utils/extension/findAssistedComments'
+import { logger } from '@/utils/logger'
+import { filterThreadsByJikkyoChapters } from '@/utils/api/jikkyo/findChapters'
+import {
+  isNgComment,
+  isNgCommentByScore,
+} from '@/utils/api/niconico/applyNgSetting'
+import { findAssistedCommentIds } from '@/utils/api/niconico/findAssistedCommentIds'
+import { getNgSettings } from '@/utils/api/niconico/getNgSettings'
+import { settings } from '@/utils/settings/extension'
+import { storage } from '@/utils/storage/extension'
 
-export type NCOStateItems = {
-  [key: `state:${string}:status`]: StateStatus | null
-  [key: `state:${string}:vod`]: StateVod | null
-  [key: `state:${string}:info`]: StateInfo | null
-  [key: `state:${string}:offset`]: StateOffset | null
-  [key: `state:${string}:slots`]: StateSlot[] | null
-  [key: `state:${string}:slotDetails`]: StateSlotDetail[] | null
+export interface NCOStateItems {
+  [key: `state:${number}:status`]: StateStatus | null
+  [key: `state:${number}:vod`]: StateVod | null
+  [key: `state:${number}:info`]: StateInfo | null
+  [key: `state:${number}:offset`]: StateOffset | null
+  [key: `state:${number}:slots`]: StateSlot[] | null
+  [key: `state:${number}:slotDetails`]: StateSlotDetail[] | null
+  [key: `state:${number}:playingVideo`]: StatePlayingVideo | null
 }
 
 export type NCOStateItemKey =
-  keyof NCOStateItems extends `state:${string}:${infer K}` ? K : never
+  keyof NCOStateItems extends `state:${number}:${infer K}` ? K : never
 
 export type NCOStateArrayItemKey = {
-  [key in keyof NCOStateItems]: NCOStateItems[key] extends unknown[] | null
-    ? key
+  [K in keyof NCOStateItems]: NCOStateItems[K] extends unknown[] | null
+    ? K
     : never
-}[keyof NCOStateItems] extends `state:${string}:${infer K}`
+}[keyof NCOStateItems] extends `state:${number}:${infer K}`
   ? K
   : never
 
 export type NCOStateItem<T extends NCOStateItemKey> =
-  NCOStateItems[`state:${string}:${T}`]
+  NCOStateItems[`state:${number}:${T}`]
 
 export type StateStatus =
   | 'pending'
@@ -46,13 +65,14 @@ export type StateStatus =
 
 export type StateVod = VodKey
 
-export type StateInfo = Partial<
-  UnionToIntersection<PlayingInfo> & BuildSearchQueryInput
->
+export type StateInfo = Partial<NCOSearcherAutoSearchArgs> & {
+  chapters?: VideoChapter[]
+  disableAdjustJikkyoOffset?: boolean
+}
 
 export type StateOffset = number
 
-export type StateSlot = {
+export interface StateSlot {
   /**
    * 動画ID or `${jkChId}:${starttime}-${endtime}`
    */
@@ -61,23 +81,24 @@ export type StateSlot = {
   isAutoLoaded?: boolean
 }
 
-export type StateSlotDetailBase = {
+export interface StateSlotDetailBase {
   /**
    * 動画ID or `${jkChId}:${starttime}-${endtime}`
    */
   id: string
-  status: StateStatus
-  markers?: (number | null)[]
+  status: 'pending' | 'loading' | 'ready' | 'error'
   offsetMs?: number
   translucent?: boolean
   hidden?: boolean
+  skip?: boolean
   isAutoLoaded?: boolean
 }
 
-export type StateSlotDetailDefault = StateSlotDetailBase & {
+export interface StateSlotDetailDefault extends StateSlotDetailBase {
   type: 'normal' | 'official' | 'danime' | 'chapter' | 'szbh'
   info: {
     id: string
+    source: 'niconico'
     channelId?: number
     title: string
     duration: number
@@ -92,11 +113,12 @@ export type StateSlotDetailDefault = StateSlotDetailBase & {
   }
 }
 
-export type StateSlotDetailJikkyo = StateSlotDetailBase & {
+export interface StateSlotDetailJikkyo extends StateSlotDetailBase {
   type: 'jikkyo'
+  id: `${JikkyoChannelId}:${number}-${number}`
   info: {
     id: string | null
-    source: 'syobocal' | 'tver' | 'nhkPlus' | null
+    source: 'syobocal' | 'tver' | 'nhk_timetable' | 'nhk_chronicle' | null
     title: string
     duration: number
     date: [start: number, end: number]
@@ -105,82 +127,303 @@ export type StateSlotDetailJikkyo = StateSlotDetailBase & {
       kawaii?: number
     }
   }
+  markers: JikkyoMarker[]
+  chapters: JikkyoChapter[]
 }
 
-export type StateSlotDetail = StateSlotDetailDefault | StateSlotDetailJikkyo
+export interface StateSlotDetailNicolog extends StateSlotDetailBase {
+  type: 'nicolog'
+  info: {
+    id: string
+    source: 'nicolog'
+    title: string
+    duration: null
+    date: number
+    count: {
+      comment: number
+      kawaii?: number
+    }
+  }
+}
+
+export interface StateSlotDetailFile extends StateSlotDetailBase {
+  type: 'file'
+  info: {
+    id: null
+    source: null
+    title: string
+    duration: null
+    date: number
+    count: {
+      comment: number
+      kawaii?: number
+    }
+  }
+}
+
+export type StateSlotDetail =
+  | StateSlotDetailDefault
+  | StateSlotDetailJikkyo
+  | StateSlotDetailNicolog
+  | StateSlotDetailFile
 
 export type StateSlotDetailUpdate = DeepPartial<StateSlotDetail> &
   Required<Pick<StateSlotDetail, 'id'>>
 
-export type NcoV1ThreadComment = V1Thread['comments'][number] & {
+export interface StatePlayingVideo {
+  type: string
+  name: string
+  size: number
+}
+
+export interface NcoV1Comment extends V1Comment {
+  _raw: {
+    commands: string[]
+    isPremium: boolean
+  }
   _nco: {
     slotType: StateSlotDetail['type']
   }
 }
 
-export type NcoV1Thread = Omit<V1Thread, 'comments'> & {
-  comments: NcoV1ThreadComment[]
+export interface NcoV1Thread extends Omit<V1Thread, 'comments'> {
+  comments: NcoV1Comment[]
   _nco: {}
 }
 
-export const filterDisplayThreads = async (
-  slots: StateSlot[] | null,
-  details: StateSlotDetail[] | null
-): Promise<NcoV1Thread[] | null> => {
+const DURATION_COMMAND_REGEXP = /(?<=^@)[\d\.]+$/
+
+export async function filterDisplayThreads(
+  ncoState: NCOState
+): Promise<NcoV1Thread[] | null> {
+  const [slots, details] = await Promise.all([
+    ncoState.get('slots'),
+    ncoState.get('slotDetails'),
+  ])
+
   if (!slots?.length || !details?.length) {
     return null
   }
 
   const threadMap = new Map<string, NcoV1Thread>()
-  const ngSettings = await getNgSettings()
-  const hideAssistedComments = await settings.get(
-    'settings:comment:hideAssistedComments'
-  )
 
-  details.forEach((detail) => {
-    if (detail.hidden || detail.status !== 'ready') {
-      return
+  const [
+    ngSettings,
+    [
+      speed,
+      commentCustomize,
+      hideAssistedComments,
+      adjustJikkyoOffset,
+      jikkyoOnlyAdjustable,
+      sharingLevel,
+    ],
+  ] = await Promise.all([
+    getNgSettings(),
+    settings.get(
+      'settings:comment:speed',
+      'settings:comment:customize',
+      'settings:comment:hideAssistedComments',
+      'settings:comment:adjustJikkyoOffset',
+      'settings:autoSearch:jikkyoOnlyAdjustable',
+      'settings:ng:sharingLevel'
+    ),
+  ])
+
+  let cmtCnt = 0
+  let assistedCmtCnt = 0
+
+  for (const detail of details) {
+    const {
+      id,
+      status,
+      offsetMs,
+      translucent,
+      hidden,
+      skip,
+      type,
+      isAutoLoaded,
+    } = detail
+
+    if (hidden || status !== 'ready') {
+      continue
     }
 
-    const slot = slots.find((slot) => slot.id === detail.id)
+    const slot = slots.find((slot) => slot.id === id)
 
-    if (!slot) return
+    if (!slot) continue
 
-    slot.threads.forEach((thread) => {
+    // NHKはオフセット自動調節の対象外
+    const isNHK =
+      id.startsWith('jk1:') ||
+      id.startsWith('jk2:') ||
+      id.startsWith('jk101:') ||
+      id.startsWith('jk103:')
+
+    // 実況: オフセット自動調節
+    if (type === 'jikkyo' && !isNHK) {
+      if (adjustJikkyoOffset) {
+        if (detail.chapters.length) {
+          slot.threads = filterThreadsByJikkyoChapters(
+            slot.threads,
+            detail.chapters
+          )
+        } else if (isAutoLoaded && jikkyoOnlyAdjustable) {
+          if (!skip) {
+            await ncoState.update('slotDetails', ['id'], {
+              id,
+              skip: true,
+            })
+          }
+
+          continue
+        }
+      }
+
+      if (skip) {
+        await ncoState.update('slotDetails', ['id'], {
+          id,
+          skip: false,
+        })
+      }
+    }
+
+    const customizeData = commentCustomize[type === 'chapter' ? 'danime' : type]
+    const customColor = customizeData?.color
+    const customOpacity = customizeData?.opacity
+
+    let customColorCommand: string | undefined
+    let customOpacityCommand: string | undefined
+    let customDurationCommand: string | undefined
+    let opacity = 1
+
+    // 色
+    if (
+      customColor != null &&
+      COLOR_CODE_REGEXP.test(customColor) &&
+      customColor !== '#FFFFFF'
+    ) {
+      customColorCommand = customColor
+    }
+
+    // 不透明度
+    if (customOpacity != null) {
+      opacity *= customOpacity / 100
+    }
+
+    // 半透明
+    if (translucent) {
+      opacity *= 0.5
+    }
+
+    if (opacity !== 1) {
+      customOpacityCommand = `nico:opacity:${opacity}`
+    }
+
+    // 速度
+    if (speed !== 1) {
+      customDurationCommand = `@${Math.round((NICONICO_DEFAULT_DURATION / speed) * 100) / 100}`
+    }
+
+    for (const thread of slot.threads) {
       const key = `${thread.fork}:${thread.id}`
 
-      if (threadMap.has(key)) return
+      if (threadMap.has(key)) continue
 
       // コメントアシストと予想されるコメント
-      const assistedCommentIds = hideAssistedComments
-        ? findAssistedComments(thread.comments).map((v) => v.id)
-        : null
+      const assistedCommentIds =
+        hideAssistedComments &&
+        type !== 'jikkyo' &&
+        type !== 'nicolog' &&
+        type !== 'file'
+          ? findAssistedCommentIds(thread.comments)
+          : null
 
-      const comments = thread.comments
-        .filter((cmt) => {
-          const isNg = isNgComment(cmt, ngSettings)
-          const isAssisted = assistedCommentIds?.includes(cmt.id)
+      cmtCnt += thread.comments.length
+      assistedCmtCnt += assistedCommentIds?.length ?? 0
 
-          return !(isNg || isAssisted)
-        })
-        .map<NcoV1ThreadComment>((cmt) => {
-          // オフセット
-          const vposMs = cmt.vposMs + (detail.offsetMs ?? 0)
+      const comments: NcoV1Comment[] = []
 
-          // 半透明
-          const commands = detail.translucent
-            ? [...new Set([...cmt.commands, 'nico:opacity:0.5'])]
-            : cmt.commands
+      for (const cmt of thread.comments) {
+        if (
+          // コメントアシスト
+          assistedCommentIds?.includes(cmt.id) ||
+          // NG
+          isNgComment(cmt, ngSettings) ||
+          // NG共有レベル
+          isNgCommentByScore(cmt.score, sharingLevel)
+        ) {
+          continue
+        }
 
-          return {
-            ...cmt,
-            vposMs,
-            commands,
-            _nco: {
-              slotType: detail.type,
-            },
+        // オフセット
+        const vposMs = cmt.vposMs + (offsetMs ?? 0)
+
+        let commands = [...cmt.commands]
+        let isPremium = cmt.isPremium
+
+        // 色
+        if (customColorCommand) {
+          const existsColorCommand = commands.some((command) => {
+            return (
+              NICONICO_COLOR_COMMANDS.includes(command) ||
+              COLOR_CODE_REGEXP.test(command)
+            )
+          })
+
+          if (!existsColorCommand) {
+            // isPremiumじゃないと一部カラーコマンドが使えない
+            isPremium = true
+
+            commands = commands.filter((v) => v !== 'white')
+            commands.push(customColorCommand)
+            commands.push('nco:customize:color')
           }
+        }
+
+        // 不透明度
+        if (customOpacityCommand) {
+          commands.push(customOpacityCommand)
+          commands.push('nco:customize:opacity')
+        }
+
+        // 速度
+        if (
+          customDurationCommand &&
+          !commands.includes('ue') &&
+          !commands.includes('shita')
+        ) {
+          const durationCommandIdx = commands.findIndex((cmd) => {
+            return DURATION_COMMAND_REGEXP.test(cmd)
+          })
+
+          if (durationCommandIdx !== -1) {
+            const customDuration = Number(
+              commands[durationCommandIdx].match(DURATION_COMMAND_REGEXP)![0]
+            )
+
+            commands[durationCommandIdx] =
+              `@${Math.round((customDuration / speed) * 100) / 100}`
+          } else {
+            commands.push(customDurationCommand)
+          }
+
+          commands.push('nco:customize:speed')
+        }
+
+        comments.push({
+          ...cmt,
+          vposMs,
+          commands,
+          isPremium,
+          _raw: {
+            commands: cmt.commands,
+            isPremium: cmt.isPremium,
+          },
+          _nco: {
+            slotType: type,
+          },
         })
+      }
 
       const commentCount = comments.length
 
@@ -192,8 +435,12 @@ export const filterDisplayThreads = async (
           _nco: {},
         })
       }
-    })
-  })
+    }
+  }
+
+  if (hideAssistedComments) {
+    logger.log('assistedComment', `${assistedCmtCnt} / ${cmtCnt}`)
+  }
 
   const threads = [...threadMap.values()]
 
@@ -204,38 +451,54 @@ export const filterDisplayThreads = async (
  * NCOverlayのデータ管理担当
  */
 export class NCOState {
-  readonly ncoId: string
+  readonly id: number
 
-  constructor(ncoId: string) {
-    this.ncoId = ncoId
+  constructor(id: number) {
+    this.id = id
   }
 
   dispose() {
     this.clear()
   }
 
-  get<Key extends NCOStateItemKey>(
-    key: Key
-  ): Promise<NCOStateItem<Key> | null> {
-    return storage.get(`state:${this.ncoId}:${key}`)
+  async get<K extends NCOStateItemKey, V extends NCOStateItem<K>>(
+    key: K,
+    target?: V extends unknown[] ? Partial<V[number]> : never
+  ): Promise<NCOStateItem<K> | null> {
+    const value = await storage.get(`state:${this.id}:${key}`)
+
+    if (target) {
+      if (Array.isArray(value)) {
+        const entries = Object.entries(target)
+
+        const filtered = value.filter((val) => {
+          return entries.every(([k, v]) => {
+            return equal(val[k as keyof typeof val], v)
+          })
+        })
+
+        return filtered as NCOStateItem<K>
+      }
+    } else {
+      return value
+    }
+
+    return null
   }
 
   async getThreads() {
-    return filterDisplayThreads(
-      await this.get('slots'),
-      await this.get('slotDetails')
-    )
+    return filterDisplayThreads(this)
   }
 
-  set<Key extends NCOStateItemKey>(key: Key, value: NCOStateItem<Key>) {
-    return storage.set(`state:${this.ncoId}:${key}`, value as any)
+  set<K extends NCOStateItemKey>(key: K, value: NCOStateItem<K>) {
+    return storage.set(`state:${this.id}:${key}`, value as any)
   }
 
-  async add<Key extends NCOStateArrayItemKey>(
-    key: Key,
-    ...values: NonNullable<NCOStateItem<Key>>
+  async add<K extends NCOStateArrayItemKey>(
+    key: K,
+    ...values: NonNullable<NCOStateItem<K>>
   ) {
-    const oldValue = await this.get<Key>(key)
+    const oldValue = await this.get(key)
 
     const exists = values.some((val) => {
       return oldValue?.some((old) => old.id === val.id)
@@ -244,22 +507,21 @@ export class NCOState {
     if (!exists) {
       const value = (
         oldValue ? [...oldValue, ...values] : values
-      ) as NCOStateItem<Key>
+      ) as NCOStateItem<K>
 
       return this.set(key, value)
     }
   }
 
   async update<
-    Key extends NCOStateArrayItemKey,
-    Value extends NonNullable<NCOStateItem<Key>>,
-    UpdateValue extends Value extends Array<any> ? Value[number] : Value,
-    UpdateFixedProps extends (keyof UpdateValue)[],
+    K extends NCOStateArrayItemKey,
+    V extends NonNullable<NCOStateItem<K>>,
+    U extends V extends unknown[] ? V[number] : V,
+    P extends keyof U = never,
   >(
-    key: Key,
-    fixedProps: UpdateFixedProps,
-    value: DeepPartial<UpdateValue> &
-      Required<Pick<UpdateValue, UpdateFixedProps[number]>>
+    key: K,
+    fixedPropKeys: readonly P[],
+    value: DeepPartial<U> & Required<Pick<U, P>>
   ): Promise<boolean> {
     const oldValue = await this.get(key)
 
@@ -269,9 +531,9 @@ export class NCOState {
 
     if (Array.isArray(oldValue)) {
       const idx = oldValue.findIndex((old) => {
-        return fixedProps.every((k) =>
-          equal(old[k as keyof typeof old], value[k])
-        )
+        return fixedPropKeys.every((key) => {
+          return equal((old as U)[key], value[key])
+        })
       })
 
       if (idx !== -1) {
@@ -298,11 +560,10 @@ export class NCOState {
     return false
   }
 
-  async remove<
-    Key extends NCOStateItemKey,
-    Value extends NCOStateItem<Key>,
-    Target extends Value extends Array<any> ? Partial<Value[number]> : never,
-  >(key: Key, target?: Target) {
+  async remove<K extends NCOStateItemKey, V extends NCOStateItem<K>>(
+    key: K,
+    target?: V extends unknown[] ? Partial<V[number]> : never
+  ) {
     if (target) {
       const oldValue = await this.get(key)
 
@@ -310,17 +571,17 @@ export class NCOState {
         const entries = Object.entries(target)
 
         const newValue = oldValue.filter((old) => {
-          return !entries.every(([key, val]) => {
-            return equal(old[key as keyof typeof old], val)
+          return !entries.every(([k, v]) => {
+            return equal(old[k as keyof typeof old], v)
           })
         })
 
         if (oldValue.length !== newValue.length) {
-          return this.set(key, newValue as Value)
+          return this.set(key, newValue as V)
         }
       }
     } else {
-      return storage.remove(`state:${this.ncoId}:${key}`)
+      return storage.remove(`state:${this.id}:${key}`)
     }
   }
 
@@ -332,13 +593,14 @@ export class NCOState {
       this.remove('offset'),
       this.remove('slots'),
       this.remove('slotDetails'),
+      this.remove('playingVideo'),
     ])
   }
 
-  onChange<Key extends NCOStateItemKey>(
-    key: Key,
-    callback: StorageOnChangeCallback<`state:${string}:${Key}`>
+  onChange<K extends NCOStateItemKey>(
+    key: K,
+    callback: StorageOnChangeCallback<`state:${number}:${K}`>
   ) {
-    return storage.onChange(`state:${this.ncoId}:${key}`, callback)
+    return storage.onChange(`state:${this.id}:${key}`, callback)
   }
 }

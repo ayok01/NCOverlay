@@ -1,107 +1,105 @@
-import type { JikkyoChannelId } from '@midra/nco-api/types/constants'
+import type { PanelItemProps } from '@/components/PanelItem'
 import type {
   StateSlot,
   StateSlotDetail,
   StateSlotDetailUpdate,
 } from '@/ncoverlay/state'
-import type { PanelItemProps } from '@/components/PanelItem'
 
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { cn } from '@heroui/react'
 
-import { getNiconicoComments } from '@/utils/api/getNiconicoComments'
-import { getJikkyoKakologs } from '@/utils/api/getJikkyoKakologs'
-
+import { getJikkyoKakolog } from '@/utils/api/jikkyo/getJikkyoKakolog'
+import { getNiconicoComment } from '@/utils/api/niconico/getNiconicoComment'
 import { ncoState } from '@/hooks/useNco'
 
 import { PanelItem } from '@/components/PanelItem'
 
-import { StatusOverlay } from './StatusOverlay'
-import { ButtonsOverlay } from './ButtonsOverlay'
 import { AddButton } from './AddButton'
-import { Thumbnail } from './Thumbnail'
-import { DateTime } from './DateTime'
-import { Title } from './Title'
+import { ButtonsOverlay } from './ButtonsOverlay'
 import { Counts } from './Counts'
+import { DateTime } from './DateTime'
 import { HideButton } from './HideButton'
-import { TranslucentButton } from './TranslucentButton'
 import { Options, OptionsButton } from './Options'
+import { StatusOverlay } from './StatusOverlay'
+import { Thumbnail } from './Thumbnail'
+import { Title } from './Title'
+import { TranslucentButton } from './TranslucentButton'
 
 export type SlotItemProps = {
   classNames?: PanelItemProps['classNames']
   detail: StateSlotDetail
-  isSearch?: boolean
   isDisabled?: boolean
-}
+} & (
+  | {
+      isSearch?: false
+      onAdd?: undefined
+    }
+  | {
+      isSearch: true
+      onAdd?: () => void | Promise<void>
+    }
+)
 
-export const SlotItem: React.FC<SlotItemProps> = ({
-  classNames,
-  detail,
-  isSearch,
-  isDisabled,
-}) => {
-  const [isOptionsOpen, setIsOptionsOpen] = useState(false)
+function getAddFunction(detail: StateSlotDetail) {
+  return async () => {
+    if (!ncoState) return
 
-  const isError = detail.status === 'error'
+    await ncoState.set('status', 'loading')
 
-  const onPressAdd = useCallback(async () => {
-    await ncoState?.add('slotDetails', {
+    await ncoState.add('slotDetails', {
       ...detail,
       status: 'loading',
     })
 
-    await ncoState?.set('status', 'loading')
-
-    const { type, id, info } = detail
+    const { type, id } = detail
 
     let slotDetail: StateSlotDetailUpdate | undefined
     let slot: StateSlot | undefined
 
     if (type === 'jikkyo') {
-      const [comment] = await getJikkyoKakologs([
-        {
-          jkChId: id.split(':')[0] as JikkyoChannelId,
-          starttime: info.date[0] / 1000,
-          endtime: info.date[1] / 1000,
-        },
-      ])
+      const comment = await getJikkyoKakolog(ncoState, id)
 
       if (comment) {
-        const { thread, markers, kawaiiCount } = comment
+        const { thread, markers, chapters, kawaiiCount } = comment
 
         slotDetail = {
           id,
           status: 'ready',
-          markers,
           info: {
             count: {
               comment: thread.commentCount,
               kawaii: kawaiiCount,
             },
           },
+          markers,
+          chapters,
         }
 
         slot = { id, threads: [thread] }
       }
     } else {
-      const [comment] = await getNiconicoComments([{ contentId: id }])
+      const comment = await getNiconicoComment(id)
 
       if (comment) {
-        const { data, threads, kawaiiCount } = comment
+        const {
+          videoData: { video },
+          threads,
+          kawaiiCount,
+        } = comment
 
         slotDetail = {
           id,
           status: 'ready',
           info: {
             count: {
-              view: data.video.count.view,
-              comment: data.video.count.comment,
+              view: video.count.view,
+              comment: video.count.comment,
               kawaii: kawaiiCount,
             },
             thumbnail:
-              data.video.thumbnail.largeUrl ||
-              data.video.thumbnail.middleUrl ||
-              data.video.thumbnail.url,
+              video.thumbnail.largeUrl ||
+              video.thumbnail.middleUrl ||
+              video.thumbnail.url,
           },
         }
 
@@ -110,28 +108,44 @@ export const SlotItem: React.FC<SlotItemProps> = ({
     }
 
     if (slotDetail && slot) {
-      await ncoState?.update('slotDetails', ['id'], slotDetail)
-      await ncoState?.add('slots', slot)
+      await ncoState.update('slotDetails', ['id'], slotDetail)
+      await ncoState.add('slots', slot)
     } else {
-      await ncoState?.update('slotDetails', ['id'], {
+      await ncoState.update('slotDetails', ['id'], {
         id,
         status: 'error',
       })
     }
 
-    await ncoState?.set('status', 'ready')
-  }, [detail])
+    await ncoState.set('status', 'ready')
+  }
+}
 
-  const onPressRemove = useCallback(async () => {
-    await ncoState?.set('status', 'loading')
+export function SlotItem({
+  classNames,
+  detail,
+  isSearch,
+  isDisabled,
+  onAdd,
+}: SlotItemProps) {
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false)
+
+  const isError = detail.status === 'error'
+
+  const onPressAdd = isSearch ? (onAdd ?? getAddFunction(detail)) : null
+
+  async function onPressRemove() {
+    if (!ncoState) return
 
     const { id } = detail
 
-    await ncoState?.remove('slotDetails', { id })
-    await ncoState?.remove('slots', { id })
+    await ncoState.set('status', 'loading')
 
-    await ncoState?.set('status', 'ready')
-  }, [detail.id])
+    await ncoState.remove('slotDetails', { id })
+    await ncoState.remove('slots', { id })
+
+    await ncoState.set('status', 'ready')
+  }
 
   return (
     <PanelItem
@@ -152,17 +166,14 @@ export const SlotItem: React.FC<SlotItemProps> = ({
         className={cn(
           'relative flex flex-row p-1',
           isSearch
-            ? [
-                'gap-1.5',
-                detail.type === 'jikkyo' ? 'h-[4.25rem]' : 'h-[5.125rem]',
-              ]
-            : 'h-[5.75rem] gap-2'
+            ? ['gap-1.5', detail.type === 'jikkyo' ? 'h-17' : 'h-20.5']
+            : 'h-23 gap-2'
         )}
       >
         <div
           className={cn(
             'relative h-full shrink-0',
-            detail.hidden && 'opacity-50'
+            (detail.hidden || detail.skip) && '*:opacity-50'
           )}
         >
           {/* サムネイル */}
@@ -175,7 +186,7 @@ export const SlotItem: React.FC<SlotItemProps> = ({
             isSearch={isSearch}
           />
 
-          {isSearch ? (
+          {onPressAdd ? (
             // 追加
             <AddButton onPress={onPressAdd} />
           ) : (
@@ -192,7 +203,7 @@ export const SlotItem: React.FC<SlotItemProps> = ({
         <div
           className={cn(
             'flex size-full flex-col gap-0.5',
-            detail.hidden && 'opacity-50'
+            (detail.hidden || detail.skip) && 'opacity-50'
           )}
         >
           {/* 日付 */}
@@ -201,7 +212,7 @@ export const SlotItem: React.FC<SlotItemProps> = ({
           {/* タイトル */}
           <Title
             id={detail.info.id}
-            source={detail.type === 'jikkyo' ? detail.info.source : null}
+            source={'source' in detail.info ? detail.info.source : null}
             title={detail.info.title}
             isSearch={isSearch}
           />
@@ -226,13 +237,18 @@ export const SlotItem: React.FC<SlotItemProps> = ({
           >
             <div className="flex shrink-0 flex-col gap-1">
               {/* 非表示 */}
-              <HideButton id={detail.id} hidden={detail.hidden} />
+              <HideButton
+                id={detail.id}
+                hidden={detail.hidden}
+                skip={detail.skip}
+              />
 
               {/* 半透明 */}
               <TranslucentButton
                 id={detail.id}
-                hidden={detail.hidden}
                 translucent={detail.translucent}
+                hidden={detail.hidden}
+                skip={detail.skip}
               />
             </div>
 
@@ -244,6 +260,7 @@ export const SlotItem: React.FC<SlotItemProps> = ({
           </div>
         )}
       </div>
+
       {/* 設定 */}
       {!isError && !isSearch && (
         <Options

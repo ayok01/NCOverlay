@@ -2,9 +2,9 @@ import type { DatePickerProps as HeroUIDatePickerProps } from '@heroui/react'
 
 import { DatePicker as HeroUIDatePicker, cn } from '@heroui/react'
 
-export type DatePickerProps = HeroUIDatePickerProps
+export interface DatePickerProps extends HeroUIDatePickerProps {}
 
-export const DatePicker: React.FC<DatePickerProps> = (props) => {
+export function DatePicker(props: DatePickerProps) {
   return (
     <HeroUIDatePicker
       size="sm"
@@ -15,69 +15,69 @@ export const DatePicker: React.FC<DatePickerProps> = (props) => {
       labelPlacement="outside-left"
       {...props}
       className={cn(
-        'justify-between !pb-0',
+        'justify-between pb-0!',
 
         // label
-        '[&_[data-slot="label"]]:!text-small',
+        '**:data-[slot="label"]:text-small!',
 
         // inputWrapper
-        '[&_[data-slot="input-wrapper"]]:max-w-64',
-        '[&_[data-slot="input-wrapper"]]:border-1',
-        '[&_[data-slot="input-wrapper"]]:border-divider',
-        '[&_[data-slot="input-wrapper"]]:!shadow-none',
-        '[&_[data-slot="input-wrapper"]]:transition-colors',
+        '**:data-[slot="input-wrapper"]:max-w-64',
+        '**:data-[slot="input-wrapper"]:border-1',
+        '**:data-[slot="input-wrapper"]:border-divider',
+        '**:data-[slot="input-wrapper"]:shadow-none!',
+        '**:data-[slot="input-wrapper"]:transition-colors',
         '[&_[data-slot="input-wrapper"]:has([data-open="true"])]:border-primary',
         '[&_[data-slot="input-wrapper"]:has([data-open="true"])]:bg-primary/15',
         'dark:[&_[data-slot="input-wrapper"]:has([data-open="true"])]:bg-primary/20',
 
         // innerWrapper
-        '[&_[data-slot="inner-wrapper"]]:text-foreground-500',
-        '[&_[data-slot="inner-wrapper"]]:dark:text-foreground-600',
+        '**:data-[slot="inner-wrapper"]:text-foreground-500',
+        'dark:**:data-[slot="inner-wrapper"]:text-foreground-600',
 
         // segment
-        // '[&_[data-slot="segment"]]:mx-[-0.5px]',
-        // '[&_[data-slot="segment"]]:px-0',
+        // '**:data-[slot="segment"]:mx-[-0.5px]',
+        // '**:data-[slot="segment"]:px-0',
         // '[&_[data-slot="segment"][data-type="hour"]]:ml-0.5',
 
         // selectorIcon
-        '[&_[data-slot="selector-icon"]]:size-4',
+        '**:data-[slot="selector-icon"]:size-4',
 
         // errorMessage
-        '[&_[data-slot="error-message"]]:hidden',
+        '**:data-[slot="error-message"]:hidden',
         props.className
       )}
       popoverProps={{
         classNames: {
-          content: cn('border-divider border-1'),
+          content: cn('border-1 border-divider'),
         },
         ...props.popoverProps,
       }}
       calendarProps={{
         className: cn(
           // pickerWrapper
-          '[&_[data-slot="picker-wrapper"]]:flex-row-reverse',
+          '**:data-[slot="picker-wrapper"]:flex-row-reverse',
 
           // header
-          '[&_[data-slot="header"]]:border-1',
-          '[&_[data-slot="header"]]:border-divider',
-          '[&_[data-slot="header"]:hover]:bg-default-200',
-          '[&_[data-slot="header"]:hover]:border-default-400',
+          '**:data-[slot="header"]:border-1',
+          '**:data-[slot="header"]:border-divider',
+          '**:data-[slot="header"]:hover:bg-default-200',
+          '**:data-[slot="header"]:hover:border-default-400',
 
           // title
-          '[&_[data-slot="title"]]:text-foreground',
+          '**:data-[slot="title"]:text-foreground',
 
           // inputWrapper
-          '[&_[data-slot="input-wrapper"]]:border-1',
-          '[&_[data-slot="input-wrapper"]]:border-divider',
-          '[&_[data-slot="input-wrapper"]]:!shadow-none',
+          '**:data-[slot="input-wrapper"]:border-1',
+          '**:data-[slot="input-wrapper"]:border-divider',
+          '**:data-[slot="input-wrapper"]:shadow-none!',
 
           // helperWrapper
-          '[&_[data-slot="helper-wrapper"]]:!hidden'
+          '**:data-[slot="helper-wrapper"]:hidden!'
         ),
         ...props.calendarProps,
       }}
       timeInputProps={{
-        className: cn('!pb-4'),
+        className: cn('pb-4!'),
       }}
     />
   )

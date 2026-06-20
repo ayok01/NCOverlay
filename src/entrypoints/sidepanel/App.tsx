@@ -1,28 +1,19 @@
-import { cn } from '@heroui/react'
-
-import { useNcoStateReady } from '@/hooks/useNco'
-
 import { Layout } from '@/components/Layout'
-import { PositionControl } from '@/components/PositionControl'
 
 import { CommentList } from './CommentList'
+import { Footer } from './Footer'
+import { Header } from './Header'
 
-const App: React.FC = () => {
-  const ready = useNcoStateReady()
-
+function App() {
   return (
     <Layout className="h-screen w-screen overflow-hidden">
-      {ready && (
-        <div
-          className={cn('flex flex-col', 'text-small size-full', 'bg-content1')}
-        >
-          <CommentList />
+      <div className="flex size-full flex-col bg-content1 text-small">
+        <Header />
 
-          <div className="ml-auto max-w-[450px]">
-            <PositionControl />
-          </div>
-        </div>
-      )}
+        <CommentList />
+
+        <Footer />
+      </div>
     </Layout>
   )
 }

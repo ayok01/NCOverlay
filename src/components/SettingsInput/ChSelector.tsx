@@ -1,49 +1,47 @@
 import type {
-  JikkyoDtvChannelId,
   JikkyoBsCsChannelId,
   JikkyoChannelId,
-} from '@midra/nco-api/types/constants'
+  JikkyoDtvChannelId,
+} from '@midra/nco-utils/types/api/constants'
 import type { SettingsInputBaseProps } from '.'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Button,
-  Tabs,
-  Tab,
-  CheckboxGroup,
   Checkbox,
+  CheckboxGroup,
+  Tab,
+  Tabs,
   useDisclosure,
 } from '@heroui/react'
 import {
-  PencilIcon,
   ChevronRightIcon,
+  PencilIcon,
   RotateCcwIcon,
   SaveIcon,
 } from 'lucide-react'
-import { JIKKYO_CHANNELS } from '@midra/nco-api/constants'
+import { JIKKYO_CHANNELS } from '@midra/nco-utils/api/constants'
 
 import { JIKKYO_CHANNEL_GROUPS } from '@/constants/channels'
-
 import { useSettings } from '@/hooks/useSettings'
 
 import { ItemButton } from '@/components/ItemButton'
 import { Modal } from '@/components/Modal'
 import { Tooltip } from '@/components/Tooltip'
 
-export type Key = 'settings:comment:jikkyoChannelIds'
+import { initConditional } from '.'
 
-export type Props<K extends Key = Key> = SettingsInputBaseProps<
-  K,
-  'ch-selector',
-  {
-    options: {
-      label: string
-      value: JikkyoChannelId
-    }[]
-  }
->
+export type Key = 'settings:autoSearch:jikkyoChannelIds'
 
-type ChSelectorProps = {
+export interface Props<K extends Key = Key>
+  extends SettingsInputBaseProps<K, 'ch-selector'> {
+  options: {
+    label: string
+    value: JikkyoChannelId
+  }[]
+}
+
+interface ChannelCheckboxGroupProps {
   type: keyof typeof JIKKYO_CHANNEL_GROUPS
   chIds: JikkyoDtvChannelId[] | JikkyoBsCsChannelId[]
   setChIds:
@@ -51,13 +49,17 @@ type ChSelectorProps = {
     | ((ids: JikkyoBsCsChannelId[]) => void)
 }
 
-const ChSelector: React.FC<ChSelectorProps> = ({ type, chIds, setChIds }) => {
+function ChannelCheckboxGroup({
+  type,
+  chIds,
+  setChIds,
+}: ChannelCheckboxGroupProps) {
   const CHANNEL = JIKKYO_CHANNEL_GROUPS[type]
 
   return (
     <CheckboxGroup
       classNames={{
-        label: 'text-small text-foreground hidden',
+        label: 'hidden text-foreground text-small',
         wrapper: 'gap-1.5 p-1.5',
       }}
       size="sm"
@@ -66,9 +68,9 @@ const ChSelector: React.FC<ChSelectorProps> = ({ type, chIds, setChIds }) => {
       value={chIds}
       onChange={setChIds as any}
     >
-      {CHANNEL.IDS.map((id, idx) => (
+      {CHANNEL.IDS.map((id) => (
         <Checkbox
-          key={idx}
+          key={id}
           classNames={{
             base: [
               'w-[calc(50%-0.375rem/2)] max-w-none',
@@ -76,47 +78,49 @@ const ChSelector: React.FC<ChSelectorProps> = ({ type, chIds, setChIds }) => {
               'bg-default-100 hover:bg-default-200',
               'data-[selected=true]:bg-primary/15 dark:data-[selected=true]:bg-primary/20',
               'rounded-medium',
-              'border-divider hover:border-default-400 border-1',
+              'border-1 border-divider hover:border-default-400',
               'data-[selected=true]:border-primary',
               'transition-colors motion-reduce:transition-none',
               'cursor-pointer',
             ],
             wrapper: [
               'rounded-full',
-              'before:!bg-default-50 before:rounded-full before:border-1',
+              'before:rounded-full before:border-1 before:bg-default-50!',
               'after:rounded-full',
             ],
             label: 'flex w-full flex-col',
           }}
           value={id}
         >
-          <span className="text-tiny text-foreground-500 dark:text-foreground-600">
+          <span className="text-foreground-500 text-tiny dark:text-foreground-600">
             {id}
           </span>
 
-          <span className="text-small line-clamp-1">{JIKKYO_CHANNELS[id]}</span>
+          <span className="line-clamp-1 text-small">{JIKKYO_CHANNELS[id]}</span>
         </Checkbox>
       ))}
     </CheckboxGroup>
   )
 }
 
-export const Input: React.FC<Props> = (props) => {
+export function Input(props: Omit<Props, 'inputType'>) {
   const [value, setValue] = useSettings(props.settingsKey)
-
+  const [isDisabled, setIsDisabled] = useState(false)
   const [dtvChIds, setDtvChIds] = useState<JikkyoDtvChannelId[]>([])
   const [stvChIds, setStvChIds] = useState<JikkyoBsCsChannelId[]>([])
 
-  const onReset = useCallback(() => {
+  function onReset() {
     setDtvChIds(JIKKYO_CHANNEL_GROUPS.DTV.IDS)
     setStvChIds(JIKKYO_CHANNEL_GROUPS.STV.IDS)
-  }, [])
+  }
 
-  const onSave = useCallback(() => {
+  function onSave() {
     setValue([...dtvChIds, ...stvChIds])
-  }, [dtvChIds, stvChIds])
+  }
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure()
+
+  useEffect(() => initConditional(props.disable, setIsDisabled), [])
 
   useEffect(() => {
     if (isOpen) {
@@ -133,7 +137,7 @@ export const Input: React.FC<Props> = (props) => {
       setDtvChIds([])
       setStvChIds([])
     }
-  }, [isOpen])
+  }, [isOpen, value])
 
   return (
     <>
@@ -147,6 +151,7 @@ export const Input: React.FC<Props> = (props) => {
             text: '編集',
             onPress: onOpen,
           }}
+          isDisabled={isDisabled}
         />
       </div>
 
@@ -158,7 +163,7 @@ export const Input: React.FC<Props> = (props) => {
         onOk={onSave}
         header={
           <div className="flex flex-row items-center gap-0.5">
-            <span>コメント</span>
+            <span>自動検索</span>
             <ChevronRightIcon className="size-5 opacity-50" />
             <span>{props.label}</span>
           </div>
@@ -179,10 +184,10 @@ export const Input: React.FC<Props> = (props) => {
       >
         <Tabs
           classNames={{
-            base: 'border-foreground-200 bg-content1 border-b-1',
+            base: 'border-foreground-200 border-b-1 bg-content1',
             tabList: 'p-0',
             tab: 'h-10 p-0',
-            panel: 'bg-content1 overflow-x-hidden overflow-y-auto p-0',
+            panel: 'h-full overflow-y-auto overflow-x-hidden bg-content1 p-0',
           }}
           variant="underlined"
           color="primary"
@@ -190,11 +195,19 @@ export const Input: React.FC<Props> = (props) => {
           destroyInactiveTabPanel={false}
         >
           <Tab key="DTV" title="地デジ">
-            <ChSelector type="DTV" chIds={dtvChIds} setChIds={setDtvChIds} />
+            <ChannelCheckboxGroup
+              type="DTV"
+              chIds={dtvChIds}
+              setChIds={setDtvChIds}
+            />
           </Tab>
 
           <Tab key="STV" title="BS / CS">
-            <ChSelector type="STV" chIds={stvChIds} setChIds={setStvChIds} />
+            <ChannelCheckboxGroup
+              type="STV"
+              chIds={stvChIds}
+              setChIds={setStvChIds}
+            />
           </Tab>
         </Tabs>
       </Modal>

@@ -1,0 +1,18 @@
+.NCOverlay-Capture {
+  .video-js > *:not(.NCOverlay-Video, .NCOverlay-Canvas),
+  div[class^="VodController_container_"] {
+    opacity: 0 !important;
+  }
+}
+
+[nco-fullscreen] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000;
+
+  > div[class^="PlayerLayout_aspectRatioWrapper_"] {
+    width: min(100vw, 177.78vh);
+    padding-top: min(56.25vw, 100vh);
+  }
+}

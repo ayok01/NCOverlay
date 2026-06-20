@@ -5,20 +5,20 @@ import type {
 } from '@/types/storage'
 import type { SettingsInputBaseProps } from '.'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Button,
-  Switch,
   Input as HeroUIInput,
-  useDisclosure,
+  Switch,
   cn,
+  useDisclosure,
 } from '@heroui/react'
 import {
-  PencilIcon,
   ChevronRightIcon,
+  PencilIcon,
   PlusIcon,
-  XIcon,
   SaveIcon,
+  XIcon,
 } from 'lucide-react'
 
 import { useSettings } from '@/hooks/useSettings'
@@ -27,19 +27,18 @@ import { ItemButton } from '@/components/ItemButton'
 import { Modal } from '@/components/Modal'
 import { Tooltip } from '@/components/Tooltip'
 
+import { initConditional } from '.'
+
 type SettingsNgKey = Extract<SettingsKey, `settings:ng:${string}`>
 
 export type Key = {
-  [key in SettingsNgKey]: StorageItems[key] extends unknown[] ? key : never
+  [P in SettingsNgKey]: StorageItems[P] extends unknown[] ? P : never
 }[SettingsNgKey]
 
-export type Props<K extends Key = Key> = SettingsInputBaseProps<
-  K,
-  'ng-list',
-  {}
->
+export interface Props<K extends Key = Key>
+  extends SettingsInputBaseProps<K, 'ng-list'> {}
 
-const validateRegExp = (pattern: string) => {
+function validateRegExp(pattern: string) {
   try {
     new RegExp(pattern)
   } catch {
@@ -49,25 +48,22 @@ const validateRegExp = (pattern: string) => {
   return true
 }
 
-const filterNgSettingsContents = (contents: (NgSettingsContent | null)[]) => {
+function filterNgSettingsContents(contents: (NgSettingsContent | null)[]) {
   return contents.filter((val) => {
-    if (!val) return false
+    const content = val?.content.trim()
 
-    const content = val.content.trim()
-
-    if (!content) return false
-
-    if (val.isRegExp) {
-      return validateRegExp(val.content)
+    if (content) {
+      return val?.isRegExp ? validateRegExp(content) : true
     }
 
-    return true
+    return false
   }) as NgSettingsContent[]
 }
 
-const HeaderCell: React.FC<
-  React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>
-> = ({ className, ...props }) => {
+interface CellProps
+  extends React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>> {}
+
+function HeaderCell({ className, ...props }: CellProps) {
   return (
     <div
       {...props}
@@ -76,17 +72,15 @@ const HeaderCell: React.FC<
         'shrink-0 py-1.5',
         'bg-content2 text-content2-foreground',
         'border-divider border-b-1',
-        'text-tiny font-semibold',
-        '[&:not(:first-child)]:border-l-1',
+        'font-semibold text-tiny',
+        'not-first:border-l-1',
         className
       )}
     />
   )
 }
 
-const ItemCell: React.FC<
-  React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>
-> = ({ className, ...props }) => {
+function ItemCell({ className, ...props }: CellProps) {
   return (
     <div
       {...props}
@@ -95,29 +89,31 @@ const ItemCell: React.FC<
         'shrink-0 p-1.5',
         'border-divider border-b-1',
         'text-small',
-        '[&:not(:first-child)]:border-l-1',
+        'not-first:border-l-1',
         className
       )}
     />
   )
 }
 
-const Header: React.FC = () => {
+function Header() {
   return (
     <div className="sticky top-0 z-20 flex flex-row">
       <HeaderCell className="w-[calc(100%-7rem)]">テキスト</HeaderCell>
 
-      <HeaderCell className="w-[4rem]">正規表現</HeaderCell>
+      <HeaderCell className="w-16">正規表現</HeaderCell>
 
-      <HeaderCell className="w-[3rem]">削除</HeaderCell>
+      <HeaderCell className="w-12">削除</HeaderCell>
     </div>
   )
 }
 
-const Item: React.FC<{
+interface ItemProps {
   init: NgSettingsContent
   onValueChange: (value: NgSettingsContent | null) => void
-}> = ({ init, onValueChange }) => {
+}
+
+function Item({ init, onValueChange }: ItemProps) {
   const [content, setContent] = useState<string>(init.content)
   const [isRegExp, setIsRegExp] = useState<boolean>(init.isRegExp ?? false)
   const [isRegExpValidated, setIsRegExpValidated] = useState<boolean>(true)
@@ -125,7 +121,10 @@ const Item: React.FC<{
   useEffect(() => {
     setIsRegExpValidated(!isRegExp || !content || validateRegExp(content))
 
-    onValueChange({ content, isRegExp })
+    onValueChange({
+      content,
+      isRegExp: isRegExp || undefined,
+    })
   }, [content, isRegExp])
 
   return (
@@ -148,7 +147,7 @@ const Item: React.FC<{
       </ItemCell>
 
       <ItemCell
-        className={cn('flex items-center justify-center', 'w-[4rem] p-0 py-1')}
+        className={cn('flex items-center justify-center', 'w-16 p-0 py-1')}
       >
         <Switch
           classNames={{
@@ -161,7 +160,7 @@ const Item: React.FC<{
       </ItemCell>
 
       <ItemCell
-        className={cn('flex items-center justify-center', 'w-[3rem] p-0 py-1')}
+        className={cn('flex items-center justify-center', 'w-12 p-0 py-1')}
       >
         <Button
           className="text-foreground"
@@ -178,20 +177,22 @@ const Item: React.FC<{
   )
 }
 
-export const Input: React.FC<Props> = (props) => {
+export function Input(props: Omit<Props, 'inputType'>) {
   const [value, setValue] = useSettings(props.settingsKey)
-
   const [tmpValue, setTmpValue] = useState<(NgSettingsContent | null)[]>([])
+  const [isDisabled, setIsDisabled] = useState(false)
 
-  const onAdd = useCallback(() => {
+  function onAdd() {
     setTmpValue((val) => [...val, { content: '' }])
-  }, [])
+  }
 
-  const onSave = useCallback(() => {
+  function onSave() {
     setValue(filterNgSettingsContents(tmpValue))
-  }, [tmpValue])
+  }
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure()
+
+  useEffect(() => initConditional(props.disable, setIsDisabled), [])
 
   useEffect(() => {
     setTmpValue(isOpen ? value : [])
@@ -209,6 +210,7 @@ export const Input: React.FC<Props> = (props) => {
             text: '編集',
             onPress: onOpen,
           }}
+          isDisabled={isDisabled}
         />
       </div>
 
@@ -241,7 +243,7 @@ export const Input: React.FC<Props> = (props) => {
       >
         <Header />
 
-        <div className="bg-content1 flex flex-col">
+        <div className="flex flex-col bg-content1">
           {tmpValue.map((val, idx, ary) => {
             if (!val) return
 

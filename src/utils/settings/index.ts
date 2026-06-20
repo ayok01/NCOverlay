@@ -1,17 +1,15 @@
 import type {
-  SettingsKey,
   SettingItems,
-  SettingsExportKey,
   SettingsExportItems,
+  SettingsExportKey,
+  SettingsKey,
 } from '@/types/storage'
-import type { StorageOnChangeCallback } from '@/utils/storage'
+import type { StorageOnChangeCallback, WebExtStorage } from '@/utils/storage'
 
 import {
   SETTINGS_DEFAULT,
   SETTINGS_DEFAULT_KEYS,
 } from '@/constants/settings/default'
-
-import { WebExtStorage } from '@/utils/storage'
 
 const SETTINGS_EXPORT_KEYS = [
   '_migrate_version',
@@ -21,33 +19,35 @@ const SETTINGS_EXPORT_KEYS = [
 /**
  * 設定を取得
  */
-export type SettingsGetFunction = {
+export interface SettingsGetFunction {
   /** すべての設定を取得 */
   (): Promise<SettingItems>
 
   /** 1つの設定を取得 */
-  <Key extends SettingsKey>(key: Key): Promise<SettingItems[Key]>
+  <K extends SettingsKey>(key: K): Promise<SettingItems[K]>
 
   /** 複数の設定を取得 */
-  <Keys extends SettingsKey[]>(
-    ...keys: Keys
+  <K extends SettingsKey[]>(
+    ...keys: K
   ): Promise<{
-    [key in Keys[number]]: SettingItems[key]
+    [P in keyof K]: SettingItems[K[P]]
   }>
 }
 
 /**
  * 設定を更新
  */
-export type SettingsSetFunction = <Key extends SettingsKey>(
-  key: Key,
-  value: SettingItems[Key] | null | undefined
-) => Promise<void>
+export interface SettingsSetFunction {
+  <K extends SettingsKey>(
+    key: K,
+    value: SettingItems[K] | null | undefined
+  ): Promise<void>
+}
 
 /**
  * 設定を削除
  */
-export type SettingsRemoveFunction = {
+export interface SettingsRemoveFunction {
   /** すべての設定を削除 */
   (): Promise<void>
 
@@ -58,7 +58,7 @@ export type SettingsRemoveFunction = {
 /**
  * 設定の使用量をバイト単位で取得
  */
-export type SettingsGetBytesInUseFunction = {
+export interface SettingsGetBytesInUseFunction {
   /** 全体の使用量を取得 */
   (): Promise<number>
 
@@ -69,30 +69,34 @@ export type SettingsGetBytesInUseFunction = {
 /**
  * 設定が変更
  */
-export type SettingsOnChangeFunction = <Key extends SettingsKey>(
-  key: Key,
-  callback: StorageOnChangeCallback<Key>
-) => () => void
+export interface SettingsOnChangeFunction {
+  <K extends SettingsKey>(
+    key: K,
+    callback: StorageOnChangeCallback<K>
+  ): () => void
+}
 
 /**
  * 設定を読み込み、変更を監視する
  */
-export type SettingsWatch = <Key extends SettingsKey>(
-  key: Key,
-  callback: (value: SettingItems[Key]) => void
-) => () => void
+export interface SettingsWatch {
+  <K extends SettingsKey>(
+    key: K,
+    callback: (value: SettingItems[K]) => void
+  ): () => void
+}
 
 /**
  * 設定をインポート
  */
-export type SettingsImportFunction = {
+export interface SettingsImportFunction {
   (values: string | SettingsExportItems): Promise<void>
 }
 
 /**
  * 設定をエクスポート
  */
-export type SettingsExportFunction = {
+export interface SettingsExportFunction {
   (): Promise<SettingsExportItems>
 }
 
@@ -112,24 +116,25 @@ export class WebExtSettings {
   }
 
   readonly get: SettingsGetFunction = async (...keys: SettingsKey[]) => {
-    const values = await this.#storage.get(...keys)
+    if (!keys.length) {
+      const values = await this.#storage.get()
+      const items = Object.fromEntries(
+        Object.entries(values).map(([key, val]) => {
+          return [key, val ?? SETTINGS_DEFAULT[key as SettingsKey]]
+        })
+      )
 
-    if (keys.length === 1) {
-      return (values ?? SETTINGS_DEFAULT[keys[0]]) as any
+      return { ...SETTINGS_DEFAULT, ...items }
+    } else if (keys.length === 1) {
+      const key = keys[0]
+      const value = (await this.#storage.get(key)) as any
+
+      return value ?? SETTINGS_DEFAULT[key]
+    } else {
+      const values = await this.#storage.get(...keys)
+
+      return values.map((v, i) => v ?? SETTINGS_DEFAULT[keys[i]])
     }
-
-    const items = Object.fromEntries(
-      Object.entries(values).map(([key, val]) => {
-        return [key, val ?? SETTINGS_DEFAULT[key as SettingsKey]]
-      })
-    ) as SettingItems
-
-    return keys.length
-      ? items
-      : {
-          ...SETTINGS_DEFAULT,
-          ...items,
-        }
   }
 
   readonly remove: SettingsRemoveFunction = (...keys: SettingsKey[]) => {
@@ -184,9 +189,11 @@ export class WebExtSettings {
     )
   }
 
-  readonly export: SettingsExportFunction = () => {
-    return this.#storage.get(
-      ...SETTINGS_EXPORT_KEYS
-    ) as Promise<SettingsExportItems>
+  readonly export: SettingsExportFunction = async () => {
+    const values = await this.#storage.get(...SETTINGS_EXPORT_KEYS)
+
+    return Object.fromEntries(
+      SETTINGS_EXPORT_KEYS.map((k, i) => [k, values[i]])
+    )
   }
 }

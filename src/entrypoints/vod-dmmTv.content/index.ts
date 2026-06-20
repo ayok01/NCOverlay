@@ -1,16 +1,15 @@
 import type { VodKey } from '@/types/constants'
+import type { VideoChapter } from '@/utils/api/jikkyo/findChapters'
 
 import { defineContentScript } from '#imports'
 
 import { MATCHES } from '@/constants/matches'
-
 import { logger } from '@/utils/logger'
 import { checkVodEnable } from '@/utils/extension/checkVodEnable'
-import { ncoApiProxy } from '@/proxy/nco-api/extension'
-
+import { ncoApiProxy } from '@/proxy/nco-utils/api/extension'
 import { NCOPatcher } from '@/ncoverlay/patcher'
 
-import './style.scss'
+import './style.css'
 
 const vod: VodKey = 'dmmTv'
 
@@ -20,24 +19,26 @@ export default defineContentScript({
   main: () => void main(),
 })
 
-const main = async () => {
+async function main() {
   if (!(await checkVodEnable(vod))) return
 
-  logger.log(`vod-${vod}.js`)
+  logger.log('vod', vod)
 
-  const patcher = new NCOPatcher({
-    vod,
+  const patcher = new NCOPatcher(vod, {
     getInfo: async (nco) => {
       const url = new URL(location.href)
       const seasonId = url.searchParams.get('season')
       const contentId = url.searchParams.get('content')
 
-      const dataVideo =
-        seasonId && contentId
-          ? await ncoApiProxy.dmmTv.video({ seasonId, contentId })
-          : null
+      if (!seasonId || !contentId) {
+        return null
+      }
 
-      logger.log('dmmTv.video:', dataVideo)
+      const dataVideo = await ncoApiProxy.dmmTv.video({ seasonId, contentId })
+      const dataStream = await ncoApiProxy.dmmTv.stream({ id: contentId })
+
+      logger.log('dmmTv.video', dataVideo)
+      logger.log('dmmTv.stream', dataStream)
 
       if (!dataVideo?.categories.some((v) => v.id === '15' || v.id === '17')) {
         return null
@@ -51,19 +52,89 @@ const main = async () => {
             .trim()
 
       const episodeTitle =
-        [dataVideo.episode?.episodeNumberName, dataVideo.episode?.episodeTitle]
-          .filter(Boolean)
-          .join(' ')
-          .trim() || null
+        dataVideo.episode?.episodeTitle !== workTitle
+          ? [
+              dataVideo.episode?.episodeNumberName,
+              dataVideo.episode?.episodeTitle,
+            ]
+              .filter(Boolean)
+              .join(' ')
+              .trim()
+          : null
 
       const duration =
         dataVideo.episode?.playInfo.duration ?? nco.renderer.video.duration ?? 0
 
-      logger.log('workTitle:', workTitle)
-      logger.log('episodeTitle:', episodeTitle)
-      logger.log('duration:', duration)
+      const streamChapters = dataStream?.chapter
 
-      return workTitle ? { workTitle, episodeTitle, duration } : null
+      let avantChapter: VideoChapter | undefined
+      let opChapter: VideoChapter | undefined
+      let mainChapter: VideoChapter | undefined
+      let edChapter: VideoChapter | undefined
+
+      if (streamChapters) {
+        if (streamChapters.op) {
+          const startMs = streamChapters.op.start * 1000
+          const endMs = streamChapters.op.end * 1000
+
+          opChapter = {
+            type: 'op',
+            startMs,
+            endMs,
+            duration: endMs - startMs,
+          }
+
+          if (0 < opChapter.startMs) {
+            avantChapter = {
+              type: 'avant',
+              startMs: 0,
+              endMs: opChapter.startMs,
+              duration: opChapter.startMs,
+            }
+          }
+        }
+
+        if (streamChapters.ed) {
+          const startMs = streamChapters.ed.start * 1000
+          const endMs = streamChapters.ed.end * 1000
+
+          edChapter = {
+            type: 'ed',
+            startMs,
+            endMs,
+            duration: endMs - startMs,
+          }
+        }
+
+        if (opChapter || edChapter) {
+          const startMs = opChapter?.endMs ?? 0
+          const endMs = edChapter?.startMs ?? duration * 1000
+
+          mainChapter = {
+            type: 'main',
+            startMs,
+            endMs,
+            duration: endMs - startMs,
+          }
+        }
+      }
+
+      const chapters = [avantChapter, opChapter, mainChapter, edChapter]
+        .filter((v) => v != null)
+        .sort((a, b) => a.startMs - b.startMs)
+
+      logger.log('workTitle', workTitle)
+      logger.log('episodeTitle', episodeTitle)
+      logger.log('duration', duration)
+      logger.log('chapters', chapters)
+
+      return workTitle
+        ? {
+            input: `${workTitle} ${episodeTitle ?? ''}`,
+            duration,
+            chapters,
+          }
+        : null
     },
     appendCanvas: (video, canvas) => {
       video.insertAdjacentElement('afterend', canvas)
@@ -84,7 +155,7 @@ const main = async () => {
     } else {
       if (location.pathname.startsWith('/vod/playback/')) {
         const video = document.body.querySelector<HTMLVideoElement>(
-          '#vodWrapper > div > video'
+          '#vodWrapper > div > video:has(source)'
         )
 
         if (video) {

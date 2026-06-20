@@ -1,6 +1,6 @@
 import type { StateSlotDetail } from '@/ncoverlay/state'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { Button, cn } from '@heroui/react'
 import { EyeOffIcon } from 'lucide-react'
 
@@ -8,32 +8,33 @@ import { ncoState } from '@/hooks/useNco'
 
 import { Tooltip } from '@/components/Tooltip'
 
-export type HideButtonProps = {
+export interface HideButtonProps {
   id: StateSlotDetail['id']
   hidden: StateSlotDetail['hidden']
+  skip: StateSlotDetail['skip']
 }
 
-export const HideButton: React.FC<HideButtonProps> = ({ id, hidden }) => {
+export function HideButton({ id, hidden, skip }: HideButtonProps) {
   const [tmpHidden, setTmpHidden] = useState(false)
 
   useEffect(() => {
     setTmpHidden(!!hidden)
   }, [hidden])
 
-  const onPress = useCallback(async () => {
+  async function onPress() {
     setTmpHidden((val) => !val)
 
     await ncoState?.update('slotDetails', ['id'], {
       id,
       hidden: !tmpHidden,
     })
-  }, [id, tmpHidden])
+  }
 
   return (
     <Tooltip placement="left" content={tmpHidden ? '表示' : '非表示'}>
       <Button
         className={cn(
-          '!size-6 min-h-0 min-w-0',
+          'size-6! min-h-0 min-w-0',
           !tmpHidden && 'text-foreground-700'
         )}
         size="sm"
@@ -41,6 +42,7 @@ export const HideButton: React.FC<HideButtonProps> = ({ id, hidden }) => {
         variant={tmpHidden ? 'solid' : 'light'}
         color={tmpHidden ? 'primary' : 'default'}
         isIconOnly
+        isDisabled={skip}
         onPress={onPress}
       >
         <EyeOffIcon className="size-3.5" />

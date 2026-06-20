@@ -1,0 +1,326 @@
+import type { ZonedDateTime } from '@internationalized/date'
+import type { JikkyoChannelId } from '@midra/nco-utils/types/api/constants'
+import type { StateSlotDetailJikkyo } from '@/ncoverlay/state'
+
+import { useState } from 'react'
+import { Button, ButtonGroup, cn } from '@heroui/react'
+import {
+  CalendarDaysIcon,
+  ChevronRightIcon,
+  ChevronsDownIcon,
+  PlusIcon,
+} from 'lucide-react'
+import { getLocalTimeZone, now } from '@internationalized/date'
+import { JIKKYO_CHANNELS } from '@midra/nco-utils/api/constants'
+
+import { JIKKYO_CHANNEL_GROUPS } from '@/constants/channels'
+import { formatDate } from '@/utils/format'
+import { getJikkyoKakolog } from '@/utils/api/jikkyo/getJikkyoKakolog'
+import { ncoState, useNcoState } from '@/hooks/useNco'
+
+import { DatePicker } from '@/components/DatePicker'
+import { Modal } from '@/components/Modal'
+import { Select, SelectItem, SelectSection } from '@/components/Select'
+import { SlotItem } from '@/components/SlotItem'
+
+const MAX_DURATION = 6 * 60 * 60 * 1000
+
+function createSlotDetailJikkyo({
+  jkChId,
+  currentDateTime,
+  startDateTime,
+  endDateTime,
+}: {
+  jkChId: JikkyoChannelId
+  currentDateTime: ZonedDateTime
+  startDateTime: ZonedDateTime
+  endDateTime: ZonedDateTime
+}): StateSlotDetailJikkyo | null {
+  const dateTimeDiff = endDateTime.compare(startDateTime)
+
+  if (
+    !jkChId ||
+    // まだ終わってない
+    0 < endDateTime.compare(currentDateTime) ||
+    // 終了日時 <= 開始日時
+    dateTimeDiff <= 0 ||
+    // 6時間以上
+    MAX_DURATION < dateTimeDiff
+  ) {
+    return null
+  }
+
+  const starttimeDate = startDateTime.toDate()
+  const endtimeDate = endDateTime.toDate()
+
+  const starttimeMs = starttimeDate.getTime()
+  const endtimeMs = endtimeDate.getTime()
+
+  const starttime = Math.floor(starttimeMs / 1000)
+  const endtime = Math.floor(endtimeMs / 1000)
+
+  return {
+    type: 'jikkyo',
+    id: `${jkChId}:${starttime}-${endtime}`,
+    status: 'pending',
+    info: {
+      id: null,
+      source: null,
+      title: [
+        `${jkChId}: ${JIKKYO_CHANNELS[jkChId]}`,
+        `${formatDate(starttimeDate, 'YYYY/MM/DD hh:mm')} 〜 ${formatDate(endtimeDate, 'hh:mm')}`,
+      ].join('\n'),
+      duration: endtime - starttime,
+      date: [starttimeMs, endtimeMs],
+      count: {
+        comment: 0,
+      },
+    },
+    markers: [],
+    chapters: [],
+  }
+}
+
+export interface JikkyoSelectorProps {
+  isOpen: boolean
+  onOpenChange: () => void
+}
+
+export function JikkyoSelector({ isOpen, onOpenChange }: JikkyoSelectorProps) {
+  const currentDateTime = now(getLocalTimeZone())
+
+  const [jkChId, setJkChId] = useState<JikkyoChannelId>()
+  const [endDateTime, setEndDateTime] = useState(
+    currentDateTime.set({
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    })
+  )
+  const [startDateTime, setStartDateTime] = useState(
+    endDateTime.add({ minutes: -30 })
+  )
+
+  const stateStatus = useNcoState('status')
+  const stateSlotDetails = useNcoState('slotDetails')
+
+  const isReady = !(stateStatus === 'searching' || stateStatus === 'loading')
+  const ids = stateSlotDetails?.map((v) => v.id) ?? []
+
+  const slotDetail =
+    jkChId &&
+    createSlotDetailJikkyo({
+      jkChId,
+      currentDateTime,
+      startDateTime,
+      endDateTime,
+    })
+
+  const isOkDisabled = !isReady || !slotDetail || ids.includes(slotDetail.id)
+
+  function reset() {
+    const endDateTime = currentDateTime.set({
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    })
+
+    setJkChId(undefined)
+    setEndDateTime(endDateTime)
+    setStartDateTime(endDateTime.add({ minutes: -30 }))
+  }
+
+  async function onAdd() {
+    if (!ncoState || !slotDetail) return
+
+    await ncoState.set('status', 'loading')
+
+    await ncoState.add('slotDetails', {
+      ...slotDetail,
+      status: 'loading',
+    })
+
+    const { id } = slotDetail
+
+    const comment = await getJikkyoKakolog(ncoState, id)
+
+    if (comment) {
+      const { thread, markers, chapters, kawaiiCount } = comment
+
+      await ncoState.update('slotDetails', ['id'], {
+        id,
+        status: 'ready',
+        info: {
+          count: {
+            comment: thread.commentCount,
+            kawaii: kawaiiCount,
+          },
+        },
+        markers,
+        chapters,
+      })
+
+      await ncoState.add('slots', {
+        id,
+        threads: [thread],
+      })
+    } else {
+      await ncoState.update('slotDetails', ['id'], {
+        id,
+        status: 'error',
+      })
+    }
+
+    await ncoState.set('status', 'ready')
+  }
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      okText="追加"
+      okIcon={<PlusIcon className="size-4" />}
+      onOk={onAdd}
+      isOkDisabled={isOkDisabled}
+      onClose={reset}
+      header={
+        <div className="flex flex-row items-center gap-0.5">
+          <span>追加</span>
+          <ChevronRightIcon className="size-5 opacity-50" />
+          <span>ニコニコ実況 過去ログ</span>
+        </div>
+      }
+    >
+      <div
+        className={cn(
+          'flex flex-col gap-2',
+          'p-2',
+          'border-foreground-200 border-b-1',
+          'bg-content1'
+        )}
+      >
+        {/* チャンネル */}
+        <Select
+          classNames={{
+            base: 'justify-between',
+            mainWrapper: 'max-w-64',
+            value: 'justify-start',
+            listboxWrapper: 'max-h-80',
+          }}
+          size="sm"
+          label="チャンネル"
+          labelPlacement="outside-left"
+          isDisabled={!isReady}
+          selectedKeys={[jkChId as string]}
+          onSelectionChange={([key]) => setJkChId(key as JikkyoChannelId)}
+        >
+          {...Object.entries(JIKKYO_CHANNEL_GROUPS).map(
+            ([key, { TITLE, IDS }]) => (
+              <SelectSection
+                key={key}
+                classNames={{
+                  base: [
+                    'last:mb-0',
+                    '[&:last-child>ul>li[role="separator"]]:hidden',
+                  ],
+                }}
+                showDivider
+                title={TITLE}
+              >
+                {IDS.map((id) => (
+                  <SelectItem key={id}>
+                    {`${id}: ${JIKKYO_CHANNELS[id]}`}
+                  </SelectItem>
+                ))}
+              </SelectSection>
+            )
+          )}
+        </Select>
+
+        {/* 開始日時 */}
+        <DatePicker
+          popoverProps={{
+            placement: 'left-end',
+          }}
+          label="開始日時"
+          selectorIcon={<CalendarDaysIcon />}
+          isDisabled={!isReady}
+          maxValue={currentDateTime as any}
+          value={startDateTime as any}
+          onChange={setStartDateTime as any}
+        />
+
+        {/* ボタン */}
+        <div className="ml-auto flex w-64 flex-row justify-between">
+          <ButtonGroup size="sm" variant="flat" isDisabled={!isReady}>
+            {[-30, -5].map((min) => (
+              <Button
+                key={min}
+                className={cn(
+                  'min-w-8 px-2',
+                  'border-divider not-first:border-l-1'
+                )}
+                onPress={() => {
+                  setEndDateTime((date) => date.add({ minutes: min }))
+                }}
+              >
+                {min}分
+              </Button>
+            ))}
+          </ButtonGroup>
+
+          <Button
+            size="sm"
+            variant="flat"
+            isIconOnly
+            isDisabled={!isReady}
+            onPress={() => setEndDateTime(startDateTime)}
+          >
+            <ChevronsDownIcon className="size-4" />
+          </Button>
+
+          <ButtonGroup size="sm" variant="flat" isDisabled={!isReady}>
+            {[5, 30].map((min) => (
+              <Button
+                key={min}
+                className={cn(
+                  'min-w-8 px-2',
+                  'border-divider not-first:border-l-1'
+                )}
+                onPress={() => {
+                  setEndDateTime((date) => date.add({ minutes: min }))
+                }}
+              >
+                +{min}分
+              </Button>
+            ))}
+          </ButtonGroup>
+        </div>
+
+        {/* 終了日時 */}
+        <DatePicker
+          popoverProps={{
+            placement: 'left-start',
+          }}
+          label="終了日時"
+          selectorIcon={<CalendarDaysIcon />}
+          isDisabled={!isReady}
+          maxValue={currentDateTime as any}
+          value={endDateTime as any}
+          onChange={setEndDateTime as any}
+        />
+      </div>
+
+      <div className="p-2">
+        {slotDetail && (
+          <SlotItem
+            detail={slotDetail}
+            isSearch
+            isDisabled={isOkDisabled}
+            onAdd={() => onAdd().then(reset)}
+          />
+        )}
+      </div>
+    </Modal>
+  )
+}

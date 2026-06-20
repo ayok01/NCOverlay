@@ -1,25 +1,46 @@
 import type { DateTimeDuration } from '@internationalized/date'
 import type {
-  NiconicoGenre,
   JikkyoChannelId,
-} from '@midra/nco-api/types/constants'
-import type { SearchQuerySort } from '@midra/nco-api/types/niconico/search'
-import type { VodKey, PluginKey } from '@/types/constants'
-import type { NCOStateItems } from '@/ncoverlay/state'
+  NiconicoGenre,
+} from '@midra/nco-utils/types/api/constants'
+import type { SearchQuerySort } from '@midra/nco-utils/types/api/niconico/search'
+import type { NCOStateItems, StateSlotDetail } from '@/ncoverlay/state'
+import type { PluginKey, VodKey } from '@/types/constants'
 
-export type NgSettingsContent = {
+export type CommentCustomizeTarget = Exclude<StateSlotDetail['type'], 'chapter'>
+
+export interface CommentCustomizeData {
+  color?: string
+  opacity?: number
+}
+
+export type CommentCustomize = {
+  [K in CommentCustomizeTarget]?: CommentCustomizeData
+}
+
+export type AutoSearchTarget = Exclude<
+  StateSlotDetail['type'],
+  'normal' | 'file'
+>
+
+export interface NgSettingsContent {
   content: string
   isRegExp?: boolean
 }
 
-export type NgSettings = {
+export interface NgSettings {
   words: NgSettingsContent[]
   commands: NgSettingsContent[]
   ids: NgSettingsContent[]
 }
 
-/** < v3.13.1 */
-export type StorageItems_v2 = {
+export type NgSharingLevel = 'none' | 'low' | 'middle' | 'high'
+
+export interface InternalItems {
+  _migrate_version: number
+}
+
+export interface StorageItems_v2 {
   /**
    * コメント:自動検索
    * @default true
@@ -27,8 +48,7 @@ export type StorageItems_v2 = {
   'settings:comment:autoLoads': ('normal' | 'szbh' | 'chapter' | 'jikkyo')[]
 }
 
-/** v3.13.1 <= */
-export type StorageItems_v3 = {
+export interface StorageItems_v3 {
   /**
    * NG設定:ニコニコ側のNG設定を使用
    * @default false
@@ -36,7 +56,21 @@ export type StorageItems_v3 = {
   'settings:ng:useNiconicoAccount': boolean
 }
 
-export type StorageItems_v4 = {
+export interface StorageItems_v4 {
+  /**
+   * 自動検索:検索対象
+   * @default true
+   */
+  'settings:comment:autoLoads': AutoSearchTarget[]
+
+  /**
+   * 自動検索:実況チャンネル
+   * @default []
+   */
+  'settings:comment:jikkyoChannelIds': JikkyoChannelId[]
+}
+
+export interface SettingItems {
   // 全般 //////////////////////////////////////////////////
   /**
    * テーマ
@@ -51,13 +85,13 @@ export type StorageItems_v4 = {
   'settings:vods': VodKey[]
 
   /**
-   * キャプチャー: 形式
+   * キャプチャ: 形式
    * @default 'jpeg'
    */
   'settings:capture:format': 'jpeg' | 'png'
 
   /**
-   * キャプチャー: 方式
+   * キャプチャ: 方式
    * @default 'jpeg'
    */
   'settings:capture:method': 'window' | 'copy'
@@ -97,23 +131,23 @@ export type StorageItems_v4 = {
   'settings:comment:scale': number
 
   /**
+   * コメント:速度
+   * @description 0.25 〜 x2
+   * @default 1
+   */
+  'settings:comment:speed': number
+
+  /**
+   * コメント:カスタマイズ
+   */
+  'settings:comment:customize': CommentCustomize
+
+  /**
    * コメント:表示量
    * @description 1 ~ 10倍
    * @default 1
    */
   'settings:comment:amount': number
-
-  /**
-   * コメント:自動検索
-   * @default true
-   */
-  'settings:comment:autoLoads': (
-    | 'official'
-    | 'danime'
-    | 'chapter'
-    | 'szbh'
-    | 'jikkyo'
-  )[]
 
   /**
    * コメント:ニコニコのログイン情報を使用
@@ -122,16 +156,47 @@ export type StorageItems_v4 = {
   'settings:comment:useNiconicoCredentials': boolean
 
   /**
-   * コメント:実況チャンネル
-   * @default []
-   */
-  'settings:comment:jikkyoChannelIds': JikkyoChannelId[]
-
-  /**
-   * コメント:コメントアシストを非表示
+   * コメント:コメントアシストの表示を抑制
    * @default false
    */
   'settings:comment:hideAssistedComments': boolean
+
+  /**
+   * コメント:実況: オフセット自動調節
+   * @default false
+   */
+  'settings:comment:adjustJikkyoOffset': boolean
+
+  // 自動検索 //////////////////////////////////////////////////
+  /**
+   * 自動検索:検索対象
+   * @default ['official', 'danime', 'chapter']
+   */
+  'settings:autoSearch:targets': AutoSearchTarget[]
+
+  /**
+   * 自動検索:実況: チャンネル
+   * @default Object.keys(JIKKYO_CHANNELS)
+   */
+  'settings:autoSearch:jikkyoChannelIds': JikkyoChannelId[]
+
+  /**
+   * 自動検索:実況: 再放送を除外する
+   * @default false
+   */
+  'settings:autoSearch:jikkyoIgnoreRerun': boolean
+
+  /**
+   * 自動検索:実況: オフセット自動調節可のみ
+   * @default false
+   */
+  'settings:autoSearch:jikkyoOnlyAdjustable': boolean
+
+  /**
+   * 自動検索:手動で実行
+   * @default false
+   */
+  'settings:autoSearch:manual': boolean
 
   // NG設定 //////////////////////////////////////////////////
   /**
@@ -170,7 +235,18 @@ export type StorageItems_v4 = {
    */
   'settings:ng:coloredComments': boolean
 
+  /**
+   * NG設定:NG共有レベル
+   * @default 'none'
+   */
+  'settings:ng:sharingLevel': NgSharingLevel
+
   // キーボード //////////////////////////////////////////////////
+  /**
+   * キーボード:コメントの表示を切り替える
+   * @default ''
+   */
+  'settings:kbd:toggleDisplayComment': string
   /**
    * キーボード:全体のオフセットを増やす
    * @default ''
@@ -265,31 +341,42 @@ export type StorageItems_v4 = {
    * @default [null, null]
    */
   'settings:search:lengthRange': [start: number | null, end: number | null]
+
+  // コメントリスト //////////////////////////////////////////////////
+  /**
+   * スムーズなスクロール
+   * @default false
+   */
+  'settings:commentList:smoothScrolling': boolean
+
+  /**
+   * オフセット調節を表示
+   * @default true
+   */
+  'settings:commentList:showPositionControl': boolean
 }
 
-export type StorageItems = StorageItems_v4 & {
-  '_migrate_version': number
+export interface SettingsExportItems
+  extends Partial<InternalItems & SettingItems> {}
 
+export interface TemporaryItems {
   /**
    * コメント:不透明度 (パネル用)
    * @default undefined
    */
   'tmp:comment:opacity': number
-} & NCOStateItems
+}
 
+export interface StateItems extends NCOStateItems {}
+
+export type StorageItems = InternalItems &
+  SettingItems &
+  TemporaryItems &
+  StateItems
+
+export type InternalKey = keyof InternalItems
+export type SettingsKey = keyof SettingItems
+export type SettingsExportKey = keyof SettingsExportItems
+export type TemporaryKey = keyof TemporaryItems
+export type StateKey = keyof StateItems
 export type StorageKey = keyof StorageItems
-
-export type InternalKey = Extract<StorageKey, `_${string}`>
-export type InternalItems = { [k in InternalKey]: StorageItems[k] }
-
-export type TemporaryKey = Extract<StorageKey, `tmp:${string}`>
-export type TemporaryItems = { [k in TemporaryKey]: StorageItems[k] }
-
-export type SettingsKey = Extract<StorageKey, `settings:${string}`>
-export type SettingItems = { [k in SettingsKey]: StorageItems[k] }
-
-export type StateKey = Extract<StorageKey, `state:${string}`>
-export type StateItems = { [k in StateKey]: StorageItems[k] }
-
-export type SettingsExportKey = InternalKey | SettingsKey
-export type SettingsExportItems = Partial<InternalItems & SettingItems>

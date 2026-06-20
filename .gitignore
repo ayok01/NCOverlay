@@ -243,3 +243,10 @@ stats.html
 stats-*.json
 .wxt
 web-ext.config.ts
+
+# Xcode (user-specific)
+xcuserdata/
+*.xcuserstate
+
+# bun (binary lockfile from bun < 1.2 — repo uses bun.lock text format)
+bun.lockb

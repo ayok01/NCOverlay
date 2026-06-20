@@ -1,7 +1,7 @@
 export type Service =
-  | ((...args: any[]) => Promise<any>)
+  | ((...args: unknown[]) => Promise<any>)
   | { [key: string]: any | Service }
 
-export type ProtocolMap = {
-  [key: string]: (data: { paths: string[]; args: any[] }) => any
+export interface ProtocolMap {
+  [key: string]: (data: { paths: string[]; args: unknown[] }) => any
 }

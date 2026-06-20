@@ -1,29 +1,23 @@
 import type { StateSlotDetail } from '@/ncoverlay/state'
 
-import { useMemo } from 'react'
-import { cn, Skeleton } from '@heroui/react'
-import { PlayIcon, MessageSquareTextIcon, HeartIcon } from 'lucide-react'
+import { Skeleton, cn } from '@heroui/react'
+import { HeartIcon, MessageSquareTextIcon, PlayIcon } from 'lucide-react'
 
 import { useSettings } from '@/hooks/useSettings'
 
-export type CountsProps = {
+export interface CountsProps {
   status: StateSlotDetail['status']
   infoCount: StateSlotDetail['info']['count']
   isSearch?: boolean
 }
 
-export const Counts: React.FC<CountsProps> = ({
-  status,
-  infoCount,
-  isSearch,
-}) => {
+export function Counts({ status, infoCount, isSearch }: CountsProps) {
   const [showKawaiiPct] = useSettings('settings:showKawaiiPct')
 
-  const kawaiiPct = useMemo(() => {
-    if (!showKawaiiPct || !infoCount.kawaii) return
-
-    return Math.round((infoCount.kawaii / infoCount.comment) * 100 * 10) / 10
-  }, [showKawaiiPct, infoCount.comment, infoCount.kawaii])
+  const kawaiiPct =
+    showKawaiiPct &&
+    infoCount.kawaii &&
+    Math.round((infoCount.kawaii / infoCount.comment) * 100 * 10) / 10
 
   return (
     <div
@@ -52,12 +46,10 @@ export const Counts: React.FC<CountsProps> = ({
 
         <Skeleton
           classNames={{
-            base: ['min-w-12 data-[loaded=true]:min-w-0', 'rounded-[4px]'],
-            content: 'text-tiny',
+            base: ['min-w-12 data-[loaded=true]:min-w-0', 'rounded-sm'],
+            content: isSearch ? 'text-mini' : 'text-tiny',
           }}
-          isLoaded={
-            0 < infoCount.comment || status === 'ready' || status === 'error'
-          }
+          isLoaded={status !== 'loading'}
         >
           {infoCount.comment.toLocaleString('ja-JP')}
         </Skeleton>

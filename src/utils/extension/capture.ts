@@ -3,19 +3,19 @@ import type { StorageItems } from '@/types/storage'
 import { logger } from '@/utils/logger'
 import { webext } from '@/utils/webext'
 import { settings } from '@/utils/settings/extension'
-import { sendNcoMessage } from '@/ncoverlay/messaging'
+import { sendExtensionMessage } from '@/messaging/extension'
 
-export const capture = async (): Promise<
+export async function capture(): Promise<
   StorageItems['settings:capture:method'] | false
-> => {
-  const {
-    'settings:capture:format': captureFormat,
-    'settings:capture:method': captureMethod,
-  } = await settings.get('settings:capture:format', 'settings:capture:method')
+> {
+  const [format, method] = await settings.get(
+    'settings:capture:format',
+    'settings:capture:method'
+  )
 
-  const response = await sendNcoMessage(
-    'capture',
-    captureMethod === 'copy' ? 'png' : captureFormat
+  const response = await sendExtensionMessage(
+    'content:capture',
+    method === 'copy' ? 'png' : format
   )
 
   if (response?.data) {
@@ -24,7 +24,7 @@ export const capture = async (): Promise<
         type: `image/${response.format}`,
       })
 
-      switch (captureMethod) {
+      switch (method) {
         case 'copy':
           await navigator.clipboard.write([
             new ClipboardItem({ [blob.type]: blob }),
@@ -41,7 +41,7 @@ export const capture = async (): Promise<
           })
       }
 
-      return captureMethod
+      return method
     } catch (err) {
       logger.error('capture', err)
     }

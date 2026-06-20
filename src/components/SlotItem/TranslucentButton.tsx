@@ -1,6 +1,6 @@
 import type { StateSlotDetail } from '@/ncoverlay/state'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { Button, cn } from '@heroui/react'
 import { BlendIcon } from 'lucide-react'
 
@@ -8,31 +8,33 @@ import { ncoState } from '@/hooks/useNco'
 
 import { Tooltip } from '@/components/Tooltip'
 
-export type TranslucentButton = {
+export interface TranslucentButton {
   id: StateSlotDetail['id']
-  hidden: StateSlotDetail['hidden']
   translucent: StateSlotDetail['translucent']
+  hidden: StateSlotDetail['hidden']
+  skip: StateSlotDetail['skip']
 }
 
-export const TranslucentButton: React.FC<TranslucentButton> = ({
+export function TranslucentButton({
   id,
-  hidden,
   translucent,
-}) => {
+  hidden,
+  skip,
+}: TranslucentButton) {
   const [tmpTranslucent, setTmpTranslucent] = useState(false)
 
   useEffect(() => {
     setTmpTranslucent(!!translucent)
   }, [translucent])
 
-  const onPress = useCallback(async () => {
+  async function onPress() {
     setTmpTranslucent((val) => !val)
 
     await ncoState?.update('slotDetails', ['id'], {
       id,
       translucent: !tmpTranslucent,
     })
-  }, [id, tmpTranslucent])
+  }
 
   return (
     <Tooltip
@@ -41,7 +43,7 @@ export const TranslucentButton: React.FC<TranslucentButton> = ({
     >
       <Button
         className={cn(
-          '!size-6 min-h-0 min-w-0',
+          'size-6! min-h-0 min-w-0',
           !tmpTranslucent && 'text-foreground-700'
         )}
         size="sm"
@@ -49,7 +51,7 @@ export const TranslucentButton: React.FC<TranslucentButton> = ({
         variant={tmpTranslucent ? 'solid' : 'light'}
         color={tmpTranslucent ? 'primary' : 'default'}
         isIconOnly
-        isDisabled={hidden}
+        isDisabled={hidden || skip}
         onPress={onPress}
       >
         <BlendIcon className="size-3.5" />

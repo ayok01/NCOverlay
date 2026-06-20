@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 
-export const useSystemTheme = () => {
+export function useSystemTheme() {
   const [theme, setTheme] = useState<'light' | 'dark'>(
     mediaQuery.matches ? 'dark' : 'light'
   )
 
   useEffect(() => {
-    const onChange = (evt: MediaQueryListEvent) => {
+    function onChange(evt: MediaQueryListEvent) {
       setTheme(evt.matches ? 'dark' : 'light')
     }
 

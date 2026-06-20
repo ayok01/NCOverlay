@@ -1,17 +1,17 @@
-import type { PopoverProps, ButtonProps } from '@heroui/react'
+import type { ButtonProps, PopoverProps } from '@heroui/react'
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
   Button,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   cn,
   tv,
 } from '@heroui/react'
 import { InfoIcon } from 'lucide-react'
 
-export type PopconfirmProps = {
+export interface PopconfirmProps {
   children: React.ReactElement
 
   placement?: PopoverProps['placement']
@@ -44,12 +44,12 @@ const popoverIcon = tv({
   },
 })
 
-export const Popconfirm: React.FC<PopconfirmProps> = (props) => {
+export function Popconfirm(props: PopconfirmProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isOkLoading, setIsOkLoading] = useState(false)
   const [isCancelLoading, setIsCancelLoading] = useState(false)
 
-  const onPressCancel = useCallback(async () => {
+  async function onPressCancel() {
     if (props.onCancel) {
       const response = props.onCancel()
 
@@ -63,9 +63,9 @@ export const Popconfirm: React.FC<PopconfirmProps> = (props) => {
     }
 
     setIsOpen(false)
-  }, [props.onCancel])
+  }
 
-  const onPressOk = useCallback(async () => {
+  async function onPressOk() {
     const response = props.onOk()
 
     if (response instanceof Promise) {
@@ -77,14 +77,14 @@ export const Popconfirm: React.FC<PopconfirmProps> = (props) => {
     }
 
     setIsOpen(false)
-  }, [props.onOk])
+  }
 
   return (
     <Popover
       classNames={{
         content: [
           'flex flex-row items-start gap-1.5 p-2.5',
-          'border-foreground-100 border-1',
+          'border-1 border-foreground-100',
         ],
       }}
       placement={props.placement}

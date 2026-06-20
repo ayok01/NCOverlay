@@ -1,9 +1,18 @@
-import type { Runtime } from 'webextension-polyfill'
-import type { StateVod, StateInfo } from '@/ncoverlay/state'
+import type {
+  ExtractedResult,
+  ExtractedResultMultipleEpisodes,
+  ExtractedResultSingleEpisode,
+} from '@midra/nco-utils/parse/libs/extract'
+import type { StateInfo, StateVod } from '@/ncoverlay/state'
+import type { AutoSearchTarget } from '@/types/storage'
+import type { Browser } from '@/utils/webext'
 
-import { GOOGLE_FORMS_URL, GOOGLE_FORMS_IDS } from '@/constants'
+import { GOOGLE_FORMS_IDS, GOOGLE_FORMS_URL } from '@/constants'
+import { SOURCE_NAMES } from '@/constants/settings'
 import { VODS } from '@/constants/vods'
+import { get } from '@/utils/get'
 import { webext } from '@/utils/webext'
+import { settings } from '@/utils/settings/extension'
 
 const CONTENTS = {
   bug: '不具合報告',
@@ -11,7 +20,7 @@ const CONTENTS = {
   other: 'その他',
 } as const
 
-const OS_NAMES: Partial<Record<Runtime.PlatformOs, string>> = {
+const OS_NAMES: Partial<Record<Browser.runtime.PlatformOs, string>> = {
   win: 'Windows',
   mac: 'macOS',
   linux: 'Linux',
@@ -19,53 +28,170 @@ const OS_NAMES: Partial<Record<Runtime.PlatformOs, string>> = {
   android: 'Android',
 }
 
-export const getFormsUrl = async (inputs?: {
+type NotObject = string | number | boolean | unknown[] | null | undefined
+type NestedKeyOf<T extends unknown> = {
+  [K in keyof T & string]: T[K] extends NotObject
+    ? K
+    : T[K] extends NotObject
+      ? K
+      : `${K}.${NestedKeyOf<NonNullable<T[K]>>}`
+}[keyof T & string]
+
+type ExtractedResultNestedKey =
+  | NestedKeyOf<ExtractedResultSingleEpisode>
+  | NestedKeyOf<ExtractedResultMultipleEpisodes>
+
+const EXTRACTED_RESULT_KEYS: ExtractedResultNestedKey[] = [
+  'input',
+
+  'title',
+  'titleStripped',
+
+  'season.text',
+  'season.number',
+  'season.prefix',
+  'season.numberText',
+  'season.suffix',
+  'season.indices',
+
+  'seasonAlt.text',
+  'seasonAlt.number',
+  'seasonAlt.prefix',
+  'seasonAlt.numberText',
+  'seasonAlt.suffix',
+  'seasonAlt.indices',
+
+  'episode.text',
+  'episode.number',
+  'episode.prefix',
+  'episode.numberText',
+  'episode.suffix',
+  'episode.indices',
+
+  'episodeAlt.text',
+  'episodeAlt.number',
+  'episodeAlt.prefix',
+  'episodeAlt.numberText',
+  'episodeAlt.suffix',
+  'episodeAlt.indices',
+
+  'episodes',
+  'episodesDivider',
+
+  'subtitle',
+  'subtitleStripped',
+]
+
+function formatEpisodes(input: ExtractedResultMultipleEpisodes): string {
+  const { episodes, episodesDivider } = input
+
+  if (!episodes || !episodesDivider) return ''
+
+  const text = episodes.map((v) => JSON.stringify(v.text))
+  const number = episodes.map((v) => v.number)
+  const numberText = episodes.map((v) => JSON.stringify(v.numberText))
+  const indices = episodes.map((v) => `[${v.indices.join(', ')}]`)
+
+  return [
+    `episodes.text: [${text.join(', ')}]`,
+    `episodes.number: [${number.join(', ')}]`,
+    `episodes.numberText: [${numberText.join(', ')}]`,
+    `episodes.indices: [${indices.join(', ')}]`,
+  ].join('\n')
+}
+
+function formatKeyValue(input: ExtractedResult, key: string): string | null {
+  const val = get(input, key)
+
+  if (val == null || val === '') return null
+
+  if (key.endsWith('.indices')) {
+    return `${key}: [${(val as []).join(', ')}]`
+  }
+
+  if (key === 'episodes' && !input.isSingleEpisode) {
+    return formatEpisodes(input)
+  }
+
+  return `${key}: ${JSON.stringify(val)}`
+}
+
+export async function getFormsUrl({
+  content,
+  vod,
+  info,
+  url,
+}: {
   content?: keyof typeof CONTENTS
   vod?: StateVod | null
   info?: StateInfo | null
   url?: string | null
-}) => {
-  const { version } = webext.runtime.getManifest()
+} = {}) {
   const { os } = await webext.runtime.getPlatformInfo()
+  const { version } = webext.runtime.getManifest()
+  const autoSearchTargets = await settings.get('settings:autoSearch:targets')
 
   const osName = OS_NAMES[os]
 
-  const url = new URL(GOOGLE_FORMS_URL)
+  const formUrl = new URL(GOOGLE_FORMS_URL)
 
-  url.searchParams.set(`entry.${GOOGLE_FORMS_IDS.VERSION}`, version)
+  // バージョン
+  formUrl.searchParams.set(`entry.${GOOGLE_FORMS_IDS.VERSION}`, version)
 
+  // OS
   if (osName) {
-    url.searchParams.set(`entry.${GOOGLE_FORMS_IDS.OS}`, osName)
+    formUrl.searchParams.set(`entry.${GOOGLE_FORMS_IDS.OS}`, osName)
   }
 
+  // ブラウザ
   if (webext.isChrome) {
-    url.searchParams.set(`entry.${GOOGLE_FORMS_IDS.BROWSER}`, 'Chrome')
+    formUrl.searchParams.set(`entry.${GOOGLE_FORMS_IDS.BROWSER}`, 'Chrome')
   } else if (webext.isFirefox) {
-    url.searchParams.set(`entry.${GOOGLE_FORMS_IDS.BROWSER}`, 'Firefox')
+    formUrl.searchParams.set(`entry.${GOOGLE_FORMS_IDS.BROWSER}`, 'Firefox')
   }
 
-  if (inputs?.content) {
-    url.searchParams.set(
+  // 内容
+  if (content) {
+    formUrl.searchParams.set(
       `entry.${GOOGLE_FORMS_IDS.CONTENT}`,
-      CONTENTS[inputs.content]
+      CONTENTS[content]
     )
   }
 
-  if (inputs?.vod) {
-    url.searchParams.set(`entry.${GOOGLE_FORMS_IDS.VODS}`, VODS[inputs.vod])
+  // 動画配信サービス
+  if (vod) {
+    formUrl.searchParams.set(`entry.${GOOGLE_FORMS_IDS.VODS}`, VODS[vod])
   }
 
-  const info =
-    inputs?.info &&
-    Object.entries(inputs.info)
-      .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
+  // 自動検索の検索対象
+  for (const key of Object.keys(SOURCE_NAMES) as AutoSearchTarget[]) {
+    if (autoSearchTargets.includes(key)) {
+      formUrl.searchParams.append(
+        `entry.${GOOGLE_FORMS_IDS.AUTO_SEARCH_TARGETS}`,
+        SOURCE_NAMES[key]
+      )
+    }
+  }
+
+  // 該当の動画
+  const input = info?.input
+
+  const inputText =
+    input &&
+    [
+      ...(typeof input === 'string'
+        ? [`input: ${JSON.stringify(input)}`]
+        : EXTRACTED_RESULT_KEYS.map((key) => formatKeyValue(input, key))),
+      `duration: ${info.duration}`,
+    ]
+      .filter(Boolean)
       .join('\n')
 
-  const title = [info, inputs?.url].filter(Boolean).join('\n\n').trim()
+  const title = [url, inputText].filter(Boolean).join('\n\n').trim()
 
   if (title) {
-    url.searchParams.set(`entry.${GOOGLE_FORMS_IDS.TITLE}`, title)
+    formUrl.searchParams.set(`entry.${GOOGLE_FORMS_IDS.TITLE}`, title)
   }
 
-  return url.href
+  return formUrl.href
 }

@@ -3,13 +3,11 @@ import type { VodKey } from '@/types/constants'
 import { defineContentScript } from '#imports'
 
 import { MATCHES } from '@/constants/matches'
-
 import { logger } from '@/utils/logger'
 import { checkVodEnable } from '@/utils/extension/checkVodEnable'
-
 import { NCOPatcher } from '@/ncoverlay/patcher'
 
-import './style.scss'
+import './style.css'
 
 const vod: VodKey = 'hulu'
 
@@ -19,13 +17,12 @@ export default defineContentScript({
   main: () => void main(),
 })
 
-const main = async () => {
+async function main() {
   if (!(await checkVodEnable(vod))) return
 
-  logger.log(`vod-${vod}.js`)
+  logger.log('vod', vod)
 
-  const patcher = new NCOPatcher({
-    vod,
+  const patcher = new NCOPatcher(vod, {
     getInfo: async (nco) => {
       if (
         document.querySelector(
@@ -54,11 +51,16 @@ const main = async () => {
 
       const duration = nco.renderer.video.duration ?? 0
 
-      logger.log('workTitle:', workTitle)
-      logger.log('episodeTitle:', episodeTitle)
-      logger.log('duration:', duration)
+      logger.log('workTitle', workTitle)
+      logger.log('episodeTitle', episodeTitle)
+      logger.log('duration', duration)
 
-      return workTitle ? { workTitle, episodeTitle, duration } : null
+      return workTitle
+        ? {
+            input: `${workTitle} ${episodeTitle ?? ''}`,
+            duration,
+          }
+        : null
     },
     appendCanvas: (video, canvas) => {
       video.insertAdjacentElement('afterend', canvas)

@@ -1,16 +1,26 @@
 import { cn } from '@heroui/react'
 
-export const ItemLabel: React.FC<{
+export interface ItemLabelProps {
   title: React.ReactNode
   description?: React.ReactNode
-}> = (props) => {
+  isDisabled?: boolean
+}
+
+export function ItemLabel(props: ItemLabelProps) {
   return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-small text-foreground">{props.title}</span>
+    <div
+      className={cn(
+        'flex flex-col gap-0.5',
+        'data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-disabled'
+      )}
+      data-disabled={props.isDisabled}
+    >
+      <span className="text-foreground text-small">{props.title}</span>
+
       {props.description && (
         <span
           className={cn(
-            'text-tiny whitespace-pre-wrap',
+            'whitespace-pre-wrap text-tiny',
             'text-foreground-500 dark:text-foreground-600'
           )}
         >

@@ -1,0 +1,36 @@
+
+/* Class = "NSMenuItem"; title = "NCOverlay for Safari"; ObjectID = "1Xt-HY-uBw"; */
+"1Xt-HY-uBw.title" = "NCOverlay for Safari";
+
+/* Class = "NSMenuItem"; title = "Quit NCOverlay for Safari"; ObjectID = "4sb-4s-VLi"; */
+"4sb-4s-VLi.title" = "Quit NCOverlay for Safari";
+
+/* Class = "NSMenuItem"; title = "About NCOverlay for Safari"; ObjectID = "5kV-Vb-QxS"; */
+"5kV-Vb-QxS.title" = "About NCOverlay for Safari";
+
+/* Class = "NSMenu"; title = "Main Menu"; ObjectID = "AYu-sK-qS6"; */
+"AYu-sK-qS6.title" = "Main Menu";
+
+/* Class = "NSMenu"; title = "Help"; ObjectID = "F2S-fz-NVQ"; */
+"F2S-fz-NVQ.title" = "Help";
+
+/* Class = "NSMenuItem"; title = "NCOverlay for Safari Help"; ObjectID = "FKE-Sm-Kum"; */
+"FKE-Sm-Kum.title" = "NCOverlay for Safari Help";
+
+/* Class = "NSWindow"; title = "NCOverlay for Safari"; ObjectID = "IQv-IB-iLA"; */
+"IQv-IB-iLA.title" = "NCOverlay for Safari";
+
+/* Class = "NSMenuItem"; title = "Show All"; ObjectID = "Kd2-mp-pUS"; */
+"Kd2-mp-pUS.title" = "Show All";
+
+/* Class = "NSMenuItem"; title = "Hide NCOverlay for Safari"; ObjectID = "Olw-nP-bQN"; */
+"Olw-nP-bQN.title" = "Hide NCOverlay for Safari";
+
+/* Class = "NSMenuItem"; title = "Hide Others"; ObjectID = "Vdr-fp-XzO"; */
+"Vdr-fp-XzO.title" = "Hide Others";
+
+/* Class = "NSMenu"; title = "NCOverlay for Safari"; ObjectID = "uQy-DD-JDr"; */
+"uQy-DD-JDr.title" = "NCOverlay for Safari";
+
+/* Class = "NSMenuItem"; title = "Help"; ObjectID = "wpr-3q-Mcd"; */
+"wpr-3q-Mcd.title" = "Help";

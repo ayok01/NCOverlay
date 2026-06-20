@@ -1,34 +1,30 @@
-import type { Variants } from 'framer-motion'
 import type { StateSlotDetail } from '@/ncoverlay/state'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@heroui/react'
-import { TRANSITION_VARIANTS } from '@heroui/framer-utils'
+import { Settings2Icon, XIcon } from 'lucide-react'
 import {
   AnimatePresence,
   LazyMotion,
   domAnimation,
-  useWillChange,
   m,
+  useWillChange,
 } from 'framer-motion'
-import { SlidersHorizontalIcon, XIcon } from 'lucide-react'
 
+import { TRANSITION_VARIANTS_ACCORDION } from '@/constants/framer-motion'
 import { ncoState } from '@/hooks/useNco'
 
 import { OffsetControl } from '@/components/OffsetControl'
 
-const transitionVariants: Variants = {
-  exit: { ...TRANSITION_VARIANTS.collapse.exit, overflowY: 'hidden' },
-  enter: { ...TRANSITION_VARIANTS.collapse.enter, overflowY: 'unset' },
-}
-
-export const OptionsButton: React.FC<{
+export interface OptionsButtonProps {
   isOpen: boolean
   onPress: () => void
-}> = ({ isOpen, onPress }) => {
+}
+
+export function OptionsButton({ isOpen, onPress }: OptionsButtonProps) {
   return (
     <Button
-      className="!size-6 min-h-0 min-w-0"
+      className="size-6! min-h-0 min-w-0"
       size="sm"
       radius="full"
       variant="flat"
@@ -38,21 +34,18 @@ export const OptionsButton: React.FC<{
       {isOpen ? (
         <XIcon className="size-3.5" />
       ) : (
-        <SlidersHorizontalIcon className="size-3.5" />
+        <Settings2Icon className="size-3.5" />
       )}
     </Button>
   )
 }
 
-type SlotOffsetControlProps = {
+interface SlotOffsetControlProps {
   id: StateSlotDetail['id']
   offsetMs: StateSlotDetail['offsetMs']
 }
 
-const SlotOffsetControl: React.FC<SlotOffsetControlProps> = ({
-  id,
-  offsetMs,
-}) => {
+function SlotOffsetControl({ id, offsetMs }: SlotOffsetControlProps) {
   const [currentOffset, setCurrentOffset] = useState(0)
   const [offset, setOffset] = useState(0)
 
@@ -65,12 +58,12 @@ const SlotOffsetControl: React.FC<SlotOffsetControlProps> = ({
     }
   }, [offsetMs])
 
-  const onApply = useCallback(async () => {
+  async function onApply() {
     await ncoState?.update('slotDetails', ['id'], {
       id,
       offsetMs: offset * 1000,
     })
-  }, [id, offset])
+  }
 
   return (
     <OffsetControl
@@ -83,11 +76,11 @@ const SlotOffsetControl: React.FC<SlotOffsetControlProps> = ({
   )
 }
 
-export type OptionsProps = {
+export interface OptionsProps extends SlotOffsetControlProps {
   isOpen: boolean
-} & SlotOffsetControlProps
+}
 
-export const Options: React.FC<OptionsProps> = ({ isOpen, id, offsetMs }) => {
+export function Options({ isOpen, id, offsetMs }: OptionsProps) {
   const willChange = useWillChange()
 
   return (
@@ -100,7 +93,7 @@ export const Options: React.FC<OptionsProps> = ({ isOpen, id, offsetMs }) => {
             initial="exit"
             animate="enter"
             exit="exit"
-            variants={transitionVariants}
+            variants={TRANSITION_VARIANTS_ACCORDION}
           >
             <div className="border-foreground-200 border-t-1 p-2">
               <SlotOffsetControl id={id} offsetMs={offsetMs} />

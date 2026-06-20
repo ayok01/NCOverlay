@@ -6,7 +6,7 @@ import { Button, cn } from '@heroui/react'
 import { ItemLabel } from '@/components/ItemLabel'
 import { Popconfirm } from '@/components/Popconfirm'
 
-export const ItemButton: React.FC<{
+export interface ItemButtonProps {
   title: React.ReactNode
   description?: React.ReactNode
   button: {
@@ -22,7 +22,10 @@ export const ItemButton: React.FC<{
     title: React.ReactNode
     description?: React.ReactNode
   }
-}> = (props) => {
+  isDisabled?: boolean
+}
+
+export function ItemButton(props: ItemButtonProps) {
   const button = (
     <Button
       className={cn(
@@ -35,6 +38,7 @@ export const ItemButton: React.FC<{
       size="sm"
       variant={props.button.variant}
       color={props.button.color}
+      isDisabled={props.isDisabled}
       startContent={props.button.startContent}
       endContent={props.button.endContent}
       onPress={props.button.onPress}
@@ -45,7 +49,11 @@ export const ItemButton: React.FC<{
 
   return (
     <div className="flex flex-row items-center justify-between gap-1">
-      <ItemLabel title={props.title} description={props.description} />
+      <ItemLabel
+        title={props.title}
+        description={props.description}
+        isDisabled={props.isDisabled}
+      />
 
       {props.confirm ? (
         <Popconfirm

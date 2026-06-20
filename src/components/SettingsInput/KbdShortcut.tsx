@@ -1,22 +1,23 @@
 import type { KbdKey } from '@heroui/react'
-import type { Runtime } from 'webextension-polyfill'
 import type { SettingsKey } from '@/types/storage'
+import type { Browser } from '@/utils/webext'
 import type { SettingsInputBaseProps } from '.'
 
-import { Fragment, useEffect, useState, useCallback } from 'react'
-import { ScrollShadow, Button, Kbd, cn } from '@heroui/react'
-import { PencilIcon, CheckIcon, PlusIcon } from 'lucide-react'
+import { Fragment, useEffect, useState } from 'react'
+import { Button, Kbd, ScrollShadow, cn } from '@heroui/react'
+import { CheckIcon, PencilIcon, PlusIcon } from 'lucide-react'
 import { useRecordHotkeys } from 'react-hotkeys-hook'
 
 import { webext } from '@/utils/webext'
-
 import { useSettings } from '@/hooks/useSettings'
 
 import { ItemLabel } from '@/components/ItemLabel'
 import { Tooltip } from '@/components/Tooltip'
 
+import { initConditional } from '.'
+
 const HEROUI_KBD_KEYS: Partial<
-  Record<'common' | Runtime.PlatformOs, string[]>
+  Record<'common' | Browser.runtime.PlatformInfo['os'], string[]>
 > = {
   common: [
     'shift',
@@ -41,7 +42,7 @@ const HEROUI_KBD_KEYS: Partial<
 }
 
 const OS_KEYS: Partial<
-  Record<'common' | Runtime.PlatformOs, Record<string, string>>
+  Record<'common' | Browser.runtime.PlatformInfo['os'], Record<string, string>>
 > = {
   common: {
     backquote: '`',
@@ -77,20 +78,22 @@ const OS_KEYS: Partial<
   },
 }
 
-const isHeroUiKbdKey = (
+function isHeroUiKbdKey(
   key: string,
-  os?: Runtime.PlatformOs
-): key is KbdKey => {
+  os?: Browser.runtime.PlatformInfo['os']
+): key is KbdKey {
   return !!(
     HEROUI_KBD_KEYS['common']?.includes(key) ||
     (os && HEROUI_KBD_KEYS[os]?.includes(key))
   )
 }
 
-const KeyboardKey: React.FC<{
+interface KeyboardKeyProps {
   kbdKey: string
-  os?: Runtime.PlatformOs
-}> = ({ kbdKey, os }) => {
+  os?: Browser.runtime.PlatformInfo['os']
+}
+
+function KeyboardKey({ kbdKey, os }: KeyboardKeyProps) {
   if (!kbdKey) return
 
   const key =
@@ -104,7 +107,7 @@ const KeyboardKey: React.FC<{
         'justify-center',
         'min-w-8 shrink-0 px-2 py-0.5',
         'bg-content1 text-content1-foreground/80',
-        'border-content1-foreground/25 border-1',
+        'border-1 border-content1-foreground/25',
         'shadow-none'
       )}
       keys={isKey ? key : undefined}
@@ -116,52 +119,55 @@ const KeyboardKey: React.FC<{
 
 export type Key = Extract<SettingsKey, `settings:kbd:${string}`>
 
-export type Props<K extends Key = Key> = SettingsInputBaseProps<
-  K,
-  'kbd-shortcut',
-  {}
->
+export interface Props<K extends Key = Key>
+  extends SettingsInputBaseProps<K, 'kbd-shortcut'> {}
 
-export const Input: React.FC<Props> = (props) => {
-  const [os, setOs] = useState<Runtime.PlatformOs>()
+export function Input(props: Omit<Props, 'inputType'>) {
   const [value, setValue] = useSettings(props.settingsKey)
+  const [isDisabled, setIsDisabled] = useState(false)
+  const [os, setOs] = useState<Browser.runtime.PlatformInfo['os']>()
   const [keys, { start, stop, isRecording }] = useRecordHotkeys()
 
-  const onClick = useCallback<React.MouseEventHandler<HTMLButtonElement>>(
-    isRecording
-      ? () => {
-          stop()
-          setValue([...keys].join('+'))
-        }
-      : (evt) => {
-          start()
-          setValue('')
-          evt.currentTarget.blur()
-        },
-    [isRecording, keys]
-  )
+  function onClick(evt: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    if (isRecording) {
+      stop()
+      setValue([...keys].join('+'))
+    } else {
+      start()
+      setValue('')
+      evt.currentTarget.blur()
+    }
+  }
 
   useEffect(() => {
+    initConditional(props.disable, setIsDisabled)
+
     webext.runtime.getPlatformInfo().then((v) => setOs(v.os))
   }, [])
 
   return (
     <div className="flex flex-col justify-between gap-2 py-2">
-      <ItemLabel title={props.label} description={props.description} />
+      <ItemLabel
+        title={props.label}
+        description={props.description}
+        isDisabled={isDisabled}
+      />
 
       <div className="flex flex-row items-center gap-1">
         <div
           className={cn(
             'h-8 w-full',
             'rounded-small',
-            'border-divider border-1',
+            'border-1 border-divider',
             'data-[recording=true]:border-primary',
             'bg-default-100',
             'data-[recording=true]:bg-primary/15 dark:data-[recording=true]:bg-primary/20',
             'overflow-x-hidden',
-            'transition-colors !duration-150'
+            'transition-colors duration-150!',
+            'data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-disabled'
           )}
           data-recording={isRecording}
+          data-disabled={isDisabled}
         >
           <ScrollShadow
             className="size-full"
@@ -184,7 +190,7 @@ export const Input: React.FC<Props> = (props) => {
                     </Fragment>
                   ))
               ) : (
-                <span className="text-small text-foreground-500 pl-1 select-none">
+                <span className="select-none pl-1 text-foreground-500 text-small">
                   未設定
                 </span>
               )}
@@ -199,6 +205,7 @@ export const Input: React.FC<Props> = (props) => {
             variant="light"
             radius="full"
             isIconOnly
+            isDisabled={isDisabled}
             // @ts-ignore
             onClick={onClick}
           >

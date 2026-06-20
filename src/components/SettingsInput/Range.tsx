@@ -1,41 +1,35 @@
-import type { StorageItems, SettingsKey } from '@/types/storage'
+import type { SettingsKey, StorageItems } from '@/types/storage'
 import type { SettingsInputBaseProps } from '.'
 
 import { useEffect, useState } from 'react'
 import { Slider, cn } from '@heroui/react'
 
 import { SETTINGS_DEFAULT } from '@/constants/settings/default'
-
 import { useSettings } from '@/hooks/useSettings'
 
+import { initConditional } from '.'
+
 export type Key = {
-  [key in SettingsKey]: StorageItems[key] extends number ? key : never
+  [P in SettingsKey]: StorageItems[P] extends number ? P : never
 }[SettingsKey]
 
-export type Props<K extends Key = Key> = SettingsInputBaseProps<
-  K,
-  'range',
-  {
-    min: number
-    max: number
-    step: number
-    prefix?: string
-    suffix?: string
-  }
->
+export interface Props<K extends Key = Key>
+  extends SettingsInputBaseProps<K, 'range'> {
+  min: number
+  max: number
+  step: number
+  prefix?: string
+  suffix?: string
+}
 
-export const Input: React.FC<Props> = (props) => {
+export function Input(props: Omit<Props, 'inputType'>) {
   const [state, setState] = useState<number>(
     SETTINGS_DEFAULT[props.settingsKey]
   )
   const [value, setValue] = useSettings(props.settingsKey)
+  const [isDisabled, setIsDisabled] = useState(false)
 
-  const [useNiconicoCredentials] = useSettings(
-    'settings:comment:useNiconicoCredentials'
-  )
-
-  const isDisabled =
-    props.settingsKey === 'settings:comment:amount' && !useNiconicoCredentials
+  useEffect(() => initConditional(props.disable, setIsDisabled), [])
 
   useEffect(() => {
     setState(value)
@@ -67,7 +61,7 @@ export const Input: React.FC<Props> = (props) => {
       {props.description && (
         <span
           className={cn(
-            'text-tiny mb-2 whitespace-pre-wrap',
+            'mb-2 whitespace-pre-wrap text-tiny',
             'text-foreground-500 dark:text-foreground-600'
           )}
         >

@@ -1,17 +1,21 @@
 import type { VodKey } from '@/types/constants'
+import type { VideoChapter } from '@/utils/api/jikkyo/findChapters'
 
 import { defineContentScript } from '#imports'
-import { normalizeAll } from '@midra/nco-parser/normalize'
+import { parse } from '@midra/nco-utils/parse'
+import { normalizeAll } from '@midra/nco-utils/parse/libs/normalize'
 
 import { MATCHES } from '@/constants/matches'
-
 import { logger } from '@/utils/logger'
 import { checkVodEnable } from '@/utils/extension/checkVodEnable'
-import { ncoApiProxy } from '@/proxy/nco-api/extension'
-
+import { ncoApiProxy } from '@/proxy/nco-utils/api/extension'
 import { NCOPatcher } from '@/ncoverlay/patcher'
 
-import './style.scss'
+import './style.css'
+
+const EP_PATH_REGEXP = /^\/video\/episode\/.+$/
+const SLOT_PATH_REGEXP = /^\/channels\/[^\/]+\/slots\/.+$/
+const EP_TITLE_LAST_REGEXP = /^最終(?:回|話)(?=\s)/
 
 const vod: VodKey = 'abema'
 
@@ -21,26 +25,26 @@ export default defineContentScript({
   main: () => void main(),
 })
 
-const main = async () => {
+async function main() {
   if (!(await checkVodEnable(vod))) return
 
-  logger.log(`vod-${vod}.js`)
+  logger.log('vod', vod)
 
-  const getProgramId = async () => {
+  async function getProgramId() {
     let programId: string | undefined
 
     const { pathname } = location
 
-    if (/^\/video\/episode\/.+$/.test(pathname)) {
+    if (EP_PATH_REGEXP.test(pathname)) {
       programId = pathname.split('/').at(-1)
-    } else if (/^\/channels\/[^\/]+\/slots\/.+$/.test(pathname)) {
+    } else if (SLOT_PATH_REGEXP.test(pathname)) {
       const id = pathname.split('/').at(-1)
       const token = localStorage.getItem('abm_token')
 
       if (id && token) {
-        const slot = await ncoApiProxy.abema.v1.media.slots(id, token)
+        const slot = await ncoApiProxy.abema.slots(id, token)
 
-        logger.log('abema.v1.media.slots:', slot)
+        logger.log('abema.slots', slot)
 
         programId = slot?.displayProgramId
       }
@@ -49,8 +53,7 @@ const main = async () => {
     return programId ?? null
   }
 
-  const patcher = new NCOPatcher({
-    vod,
+  const patcher = new NCOPatcher(vod, {
     getInfo: async () => {
       const programId = await getProgramId()
       const token = localStorage.getItem('abm_token')
@@ -59,12 +62,9 @@ const main = async () => {
         return null
       }
 
-      const program = await ncoApiProxy.abema.v1.video.programs(
-        programId,
-        token
-      )
+      const program = await ncoApiProxy.abema.programs(programId, token)
 
-      logger.log('abema.v1.video.programs:', program)
+      logger.log('abema.programs', program)
 
       if (program?.genre.id !== 'animation') {
         return null
@@ -81,26 +81,95 @@ const main = async () => {
         if (normalizedSeasonName.includes(normalizedSeriesTitle)) {
           workTitle = program.season.name
         } else {
-          workTitle = `${seriesTitle} ${program.season.name}`
+          const { season } = parse(`${seriesTitle} #0`)
+
+          if (!season) {
+            workTitle = `${seriesTitle} ${program.season.name}`
+          }
         }
       }
 
-      let episodeTitle: string | undefined
+      let episodeTitle: string | null = null
 
       if (workTitle !== program.episode.title) {
         episodeTitle = program.episode.title.replace(
-          /^最終(?:回|話)(?=\s)/,
+          EP_TITLE_LAST_REGEXP,
           `第${program.episode.number}話`
         )
       }
 
       const duration = program.info.duration
 
-      logger.log('workTitle:', workTitle)
-      logger.log('episodeTitle:', episodeTitle)
-      logger.log('duration:', duration)
+      const { opening, ending } = program.viewingPoint
 
-      return workTitle ? { workTitle, episodeTitle, duration } : null
+      let avantChapter: VideoChapter | undefined
+      let opChapter: VideoChapter | undefined
+      let mainChapter: VideoChapter | undefined
+      let edChapter: VideoChapter | undefined
+
+      // アバン, OP
+      if (opening) {
+        const startMs = opening.start * 1000
+        const endMs = opening.end * 1000
+
+        opChapter = {
+          type: 'op',
+          startMs,
+          endMs,
+          duration: endMs - startMs,
+        }
+
+        if (0 < opChapter.startMs) {
+          avantChapter = {
+            type: 'avant',
+            startMs: 0,
+            endMs: opChapter.startMs,
+            duration: opChapter.startMs,
+          }
+        }
+      }
+
+      // ED
+      if (ending) {
+        const startMs = ending.start * 1000
+        const endMs = ending.end * 1000
+
+        edChapter = {
+          type: 'ed',
+          startMs,
+          endMs,
+          duration: endMs - startMs,
+        }
+      }
+
+      if (opChapter || edChapter) {
+        const startMs = opChapter?.endMs ?? 0
+        const endMs = edChapter?.startMs ?? duration * 1000
+
+        mainChapter = {
+          type: 'main',
+          startMs,
+          endMs,
+          duration: endMs - startMs,
+        }
+      }
+
+      const chapters = [avantChapter, opChapter, mainChapter, edChapter]
+        .filter((v) => v != null)
+        .sort((a, b) => a.startMs - b.startMs)
+
+      logger.log('workTitle', workTitle)
+      logger.log('episodeTitle', episodeTitle)
+      logger.log('duration', duration)
+      logger.log('chapters', chapters)
+
+      return workTitle
+        ? {
+            input: `${workTitle} ${episodeTitle ?? ''}`,
+            duration,
+            chapters,
+          }
+        : null
     },
     appendCanvas: (video, canvas) => {
       video
@@ -123,12 +192,9 @@ const main = async () => {
     } else {
       const { pathname } = location
 
-      if (
-        /^\/video\/episode\/.+$/.test(pathname) ||
-        /^\/channels\/[^\/]+\/slots\/.+$/.test(pathname)
-      ) {
+      if (EP_PATH_REGEXP.test(pathname) || SLOT_PATH_REGEXP.test(pathname)) {
         const video = document.body.querySelector<HTMLVideoElement>(
-          '.com-a-Video__video > video[preload][src]'
+          '.com-vod-VODScreen__player :is(video[src], video:has(source[src]))'
         )
 
         if (video) {

@@ -5,11 +5,11 @@ import { exitFullscreen, toggleFullscreen } from '@/utils/dom/fullscreen'
 /**
  * フルスクリーン (ブラウザサイズ)
  */
-export const windowSizeFullscreen: PluginFunction = () => {
+export function windowSizeFullscreen(): ReturnType<PluginFunction> {
   const _requestFullscreen = Element.prototype.requestFullscreen
 
   Element.prototype.requestFullscreen = new Proxy(_requestFullscreen, {
-    apply: async (target, thisArg: Element, argArray) => {
+    apply: (target, thisArg: Element, argArray) => {
       if (thisArg.id === 'bchplayer-box') {
         thisArg.classList.toggle('bch-fullscreen')
         toggleFullscreen(thisArg)

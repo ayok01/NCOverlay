@@ -8,6 +8,11 @@ export const LINKS: {
   url?: string
 }[] = [
   {
+    title: 'Discord',
+    label: '参加',
+    url: 'https://u.midra.me/discord-extensions',
+  },
+  {
     title: 'X (Twitter)',
     label: '@Midra429',
     url: 'https://x.com/Midra429',
@@ -30,11 +35,12 @@ export const GOOGLE_FORMS_IDS = {
   OS: '994779637',
   BROWSER: '104404822',
   VODS: '1382689804',
+  AUTO_SEARCH_TARGETS: '1885203008',
   TITLE: '2044762585',
 } as const
 
 /** ニコニコ コメント コマンド (色) */
-export const NICONICO_COLOR_COMMANDS: Record<string, string> = {
+export const NICONICO_COLORS: Record<string, string> = {
   // white: '#FFFFFF',
   red: '#FF0000',
   pink: '#FF8080',
@@ -64,6 +70,10 @@ export const NICONICO_COLOR_COMMANDS: Record<string, string> = {
   black2: '#666666',
 }
 
+export const NICONICO_COLOR_COMMANDS = Object.keys(NICONICO_COLORS)
+
+export const NICONICO_DEFAULT_DURATION = 3
+
 export const COLOR_CODE = '^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$'
 
 export const COLOR_CODE_REGEXP = new RegExp(COLOR_CODE)
@@ -78,3 +88,5 @@ export const KAWAII_REGEXP = new RegExp(
   ].join('|'),
   'i'
 )
+
+export const PROGRAM_FLAG_REGEXP = /^(?:(?:🈟|🈡|🈞)\s?)+/

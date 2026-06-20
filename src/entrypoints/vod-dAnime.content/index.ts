@@ -1,17 +1,20 @@
+import type { Chapter } from '@midra/nco-utils/types/api/danime/part'
 import type { VodKey } from '@/types/constants'
+import type { VideoChapter } from '@/utils/api/jikkyo/findChapters'
 
 import { defineContentScript } from '#imports'
-import { episode as extractEpisode } from '@midra/nco-parser/extract/lib/episode'
+import { parse } from '@midra/nco-utils/parse'
+import { normalize } from '@midra/nco-utils/parse/libs/normalize'
 
 import { MATCHES } from '@/constants/matches'
-
 import { logger } from '@/utils/logger'
 import { checkVodEnable } from '@/utils/extension/checkVodEnable'
-import { ncoApiProxy } from '@/proxy/nco-api/extension'
-
+import { ncoApiProxy } from '@/proxy/nco-utils/api/extension'
 import { NCOPatcher } from '@/ncoverlay/patcher'
 
-import './style.scss'
+import './style.css'
+
+const EP_TITLE_LAST_REGEXP = /最終(?:回|話)/
 
 const vod: VodKey = 'dAnime'
 
@@ -21,54 +24,160 @@ export default defineContentScript({
   main: () => void main(),
 })
 
-const main = async () => {
+async function main() {
   if (!(await checkVodEnable(vod))) return
 
-  logger.log(`vod-${vod}.js`)
+  logger.log('vod', vod)
 
   const video = document.body.querySelector<HTMLVideoElement>('video#video')
 
   if (!video) return
 
-  const patcher = new NCOPatcher({
-    vod,
+  const patcher = new NCOPatcher(vod, {
     getInfo: async () => {
       const partId = new URL(location.href).searchParams.get('partId')
       const partData = partId ? await ncoApiProxy.danime.part(partId) : null
 
-      logger.log('danime.part:', partData)
+      logger.log('danime.part', partData)
 
       if (!partData) {
         return null
       }
 
       let workTitle = partData.workTitle
-      let episodeText = partData.partDispNumber
+      let episodeTitle = `${partData.partDispNumber} ${partData.partTitle}`
 
       if (partData.partDispNumber === '本編') {
-        episodeText = ''
+        const workTitleNormalized = normalize(workTitle)
+        const partTitleNormalized = normalize(partData.partTitle)
+
+        if (workTitleNormalized === partTitleNormalized) {
+          episodeTitle = ''
+        } else if (partTitleNormalized.startsWith(workTitleNormalized)) {
+          workTitle = partData.partTitle
+          episodeTitle = ''
+        }
       } else if (
-        /最終(?:回|話)/.test(partData.partDispNumber) &&
+        EP_TITLE_LAST_REGEXP.test(partData.partDispNumber) &&
         partData.prevTitle
       ) {
-        const [episode] = extractEpisode(partData.prevTitle)
+        const parsed = parse(partData.prevTitle)
 
-        if (episode) {
-          episodeText = `${episode.number + 1}話`
+        if (parsed.isSingleEpisode && parsed.episode) {
+          episodeTitle = `${parsed.episode.number + 1}話 ${partData.partTitle}`
         }
       }
 
-      const episodeTitle =
-        [episodeText, partData.partTitle].filter(Boolean).join(' ').trim() ||
-        null
-
       const duration = partData.partMeasureSecond
 
-      logger.log('workTitle:', workTitle)
-      logger.log('episodeTitle:', episodeTitle)
-      logger.log('duration:', duration)
+      const partChapters = structuredClone(partData.chapters)
+      const chapters: VideoChapter[] = []
 
-      return workTitle ? { workTitle, episodeTitle, duration } : null
+      // アバンの手前の部分(多分あらすじ)をアバンに統合する
+      if (
+        partChapters[0]?.type === 'none' &&
+        partChapters[1]?.type === 'avant'
+      ) {
+        partChapters[1].start = partChapters[0].start
+        partChapters.shift()
+      }
+
+      const opEdChapters: Chapter[] = []
+
+      for (const chapter of partChapters) {
+        let type: VideoChapter['type'] | undefined
+
+        switch (chapter.type) {
+          case 'avant':
+            type = 'avant'
+            break
+
+          case 'mainStory':
+            type = 'main'
+            break
+
+          case 'cPart':
+            type = 'cPart'
+            break
+
+          case 'none':
+            if (!chapter.showInterface) break
+
+            const chapterDuration = chapter.end - chapter.start
+
+            if (chapterDuration <= 60000) {
+              type = 'other'
+            } else if (chapterDuration <= 100000) {
+              opEdChapters.push(chapter)
+            } else {
+              if (!chapters.length) {
+                type = 'avant_op'
+              } else {
+                opEdChapters.push(chapter)
+              }
+            }
+
+            break
+        }
+
+        if (!type) continue
+
+        chapters.push({
+          type,
+          startMs: chapter.start,
+          endMs: chapter.end,
+          duration: chapter.end - chapter.start,
+        })
+      }
+
+      switch (opEdChapters.length) {
+        case 2:
+          const [opChapter, edChapter] = opEdChapters
+
+          chapters.push({
+            type: 'op',
+            startMs: opChapter.start,
+            endMs: opChapter.end,
+            duration: opChapter.end - opChapter.start,
+          })
+          chapters.push({
+            type: 'ed',
+            startMs: edChapter.start,
+            endMs: edChapter.end,
+            duration: edChapter.end - edChapter.start,
+          })
+
+          break
+
+        case 1:
+          const [opEdChapter] = opEdChapters
+
+          const hasOp = !!chapters.find((v) => v.type === 'avant_op')
+
+          chapters.push({
+            type: hasOp ? 'ed' : 'op-ed',
+            startMs: opEdChapter.start,
+            endMs: opEdChapter.end,
+            duration: opEdChapter.end - opEdChapter.start,
+          })
+
+          break
+      }
+
+      chapters.sort((a, b) => a.startMs - b.startMs)
+
+      logger.log('workTitle', workTitle)
+      logger.log('episodeTitle', episodeTitle)
+      logger.log('duration', duration)
+      logger.log('chapters', chapters)
+
+      return workTitle
+        ? {
+            input: `${workTitle} ${episodeTitle}`,
+            duration,
+            chapters,
+          }
+        : null
     },
     appendCanvas: (video, canvas) => {
       video.insertAdjacentElement('afterend', canvas)

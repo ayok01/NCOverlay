@@ -1,27 +1,33 @@
-import type { VodKey, PluginKey, SettingsInitData } from '@/types/constants'
-import type { JikkyoChannelId } from '@midra/nco-api/types/constants'
+import type { JikkyoChannelId } from '@midra/nco-utils/types/api/constants'
+import type { PluginKey, SettingsInitData, VodKey } from '@/types/constants'
 
 import {
-  SunMoonIcon,
-  SunIcon,
-  MoonIcon,
-  SlidersHorizontalIcon,
-  MessageSquareTextIcon,
-  MessageSquareOffIcon,
   BlocksIcon,
   KeyboardIcon,
+  MessageSquareOffIcon,
+  MessageSquareTextIcon,
+  MoonIcon,
+  SearchIcon,
+  SlidersHorizontalIcon,
+  SunIcon,
+  SunMoonIcon,
 } from 'lucide-react'
-import { JIKKYO_CHANNELS } from '@midra/nco-api/constants'
+import { JIKKYO_CHANNELS } from '@midra/nco-utils/api/constants'
 
-import { VODS } from '@/constants/vods'
 import { PLUGINS } from '@/constants/plugins'
+import { VODS } from '@/constants/vods'
+
+import {
+  ADJUST_OFFSET_VOD_KEYS,
+  AUTO_SEARCH_TARGET_KEYS,
+  SOURCE_NAMES,
+} from '.'
 
 /** 設定画面の初期化データ */
 export const SETTINGS_INIT_DATA: SettingsInitData = [
   {
-    id: 'general',
     title: '全般',
-    icon: SlidersHorizontalIcon,
+    Icon: SlidersHorizontalIcon,
     items: [
       {
         settingsKey: 'settings:theme',
@@ -31,17 +37,17 @@ export const SETTINGS_INIT_DATA: SettingsInitData = [
           {
             label: '自動',
             value: 'auto',
-            icon: SunMoonIcon,
+            Icon: SunMoonIcon,
           },
           {
             label: 'ライト',
             value: 'light',
-            icon: SunIcon,
+            Icon: SunIcon,
           },
           {
             label: 'ダーク',
             value: 'dark',
-            icon: MoonIcon,
+            Icon: MoonIcon,
           },
         ],
       },
@@ -50,15 +56,17 @@ export const SETTINGS_INIT_DATA: SettingsInitData = [
         inputType: 'checkbox',
         label: '動画配信サービス',
         description: '選択した動画配信サービスで\n拡張機能を有効にします。',
-        options: Object.entries(VODS).map(([key, value]) => ({
-          label: value,
-          value: key as VodKey,
-        })),
+        options: Object.entries(VODS)
+          .filter(([key]) => !key.startsWith('_'))
+          .map(([key, value]) => ({
+            label: value,
+            value: key as VodKey,
+          })),
       },
       {
         settingsKey: 'settings:capture:format',
         inputType: 'select',
-        label: 'キャプチャー: 形式',
+        label: 'キャプチャ: 形式',
         options: [
           { label: 'JPEG', value: 'jpeg' },
           { label: 'PNG', value: 'png' },
@@ -67,7 +75,7 @@ export const SETTINGS_INIT_DATA: SettingsInitData = [
       {
         settingsKey: 'settings:capture:method',
         inputType: 'select',
-        label: 'キャプチャー: 方式',
+        label: 'キャプチャ: 方式',
         options: [
           { label: 'ウィンドウ', value: 'window' },
           { label: 'コピー', value: 'copy' },
@@ -84,14 +92,14 @@ export const SETTINGS_INIT_DATA: SettingsInitData = [
         inputType: 'toggle',
         label: 'かわいい率を表示',
         description:
-          'コメント数の右側にかわいい率（かわいいコメの出現率）を表示します。',
+          'コメント数の右側にかわいい率(かわいいの出現率)を表示します。',
       },
     ],
   },
+
   {
-    id: 'comment',
     title: 'コメント',
-    icon: MessageSquareTextIcon,
+    Icon: MessageSquareTextIcon,
     items: [
       {
         settingsKey: 'settings:comment:fps',
@@ -122,59 +130,144 @@ export const SETTINGS_INIT_DATA: SettingsInitData = [
         suffix: '%',
       },
       {
+        settingsKey: 'settings:comment:speed',
+        inputType: 'range',
+        label: '速度',
+        min: 0.25,
+        max: 2,
+        step: 0.25,
+        prefix: 'x',
+      },
+      {
+        settingsKey: 'settings:comment:customize',
+        inputType: 'comment-customizer',
+        label: 'カスタマイズ',
+        description: '種類別にコメントの色と不透明度を設定します。',
+      },
+      {
         settingsKey: 'settings:comment:amount',
         inputType: 'range',
         label: '表示量',
-        description:
-          'コメント数の目安: 2倍(2,000) 〜 10倍(10,000)\n倍率が高くなるほど取得に時間がかかります。',
+        description: [
+          'コメント数の目安: 2倍(2,000) 〜 10倍(10,000)',
+          '※倍率が高くなるほど取得に時間がかかったり、エラーが発生する可能性が高くなります。',
+        ].join('\n'),
         min: 1,
         max: 10,
         step: 1,
         suffix: '倍',
+        disable: {
+          when: [
+            {
+              key: 'settings:comment:useNiconicoCredentials',
+              value: false,
+            },
+          ],
+        },
       },
       {
-        settingsKey: 'settings:comment:autoLoads',
+        settingsKey: 'settings:comment:useNiconicoCredentials',
+        inputType: 'toggle',
+        label: 'ニコニコのログイン情報を使用',
+        description: [
+          'ONにするとニコニコのNG設定が適用されますが、視聴履歴に反映されるようになります。',
+        ].join('\n'),
+      },
+      {
+        settingsKey: 'settings:comment:hideAssistedComments',
+        inputType: 'toggle',
+        label: 'コメントアシストの表示を抑制',
+        description: [
+          'コメントアシスト機能を使用したと予想されるコメントの表示を抑制します。',
+          '※正確には判定できないので、テンプレコメントも対象になる可能性があります',
+        ].join('\n'),
+      },
+      {
+        settingsKey: 'settings:comment:adjustJikkyoOffset',
+        inputType: 'toggle',
+        label: '実況: オフセット自動調節 (β)',
+        description: [
+          'OP/EDスキップ機能のデータとコメントを元に、自動で提供やCM部分をカットします。',
+          '※EDと次回予告の間のCMはカットできません',
+          '※コメントの内容や数に依存するため、不正確な可能性があります',
+          '',
+          '[対応動画配信サービス]',
+          ADJUST_OFFSET_VOD_KEYS.map((v) => VODS[v]).join(' / '),
+        ].join('\n'),
+      },
+    ],
+  },
+
+  {
+    title: '自動検索',
+    Icon: SearchIcon,
+    items: [
+      {
+        settingsKey: 'settings:autoSearch:targets',
         inputType: 'checkbox',
-        label: '自動検索',
-        description: `${VODS.nhkPlus}は\n「実況(過去ログ)」のみ`,
-        options: [
-          { label: '公式', value: 'official' },
-          { label: 'dアニメ', value: 'danime' },
-          { label: 'dアニメ(分割)', value: 'chapter' },
-          { label: 'コメント専用', value: 'szbh' },
-          { label: '実況(過去ログ)', value: 'jikkyo' },
-        ],
+        label: '検索対象',
+        description: `${VODS.nhkOne}と${VODS.nhkOndemand}は「${SOURCE_NAMES.jikkyo}」のみ`,
+        options: AUTO_SEARCH_TARGET_KEYS.map((key) => ({
+          label: SOURCE_NAMES[key],
+          value: key,
+        })),
       },
       {
-        settingsKey: 'settings:comment:jikkyoChannelIds',
+        settingsKey: 'settings:autoSearch:jikkyoChannelIds',
         inputType: 'ch-selector',
-        label: '自動検索: 実況チャンネル',
+        label: '実況: チャンネル',
         options: Object.entries(JIKKYO_CHANNELS).map(([id, val]) => ({
           label: `${id}: ${val}`,
           value: id as JikkyoChannelId,
         })),
       },
       {
-        settingsKey: 'settings:comment:useNiconicoCredentials',
+        settingsKey: 'settings:autoSearch:jikkyoIgnoreRerun',
         inputType: 'toggle',
-        label: 'ニコニコのログイン情報を使用',
-        description:
-          'ON: ニコニコのNG設定が反映される\nOFF: ニコニコに視聴履歴を反映させない',
+        label: '実況: 再放送を除外する',
+        description: '再放送を自動検索の対象から除外します。',
       },
       {
-        settingsKey: 'settings:comment:hideAssistedComments',
+        settingsKey: 'settings:autoSearch:jikkyoOnlyAdjustable',
         inputType: 'toggle',
-        label: 'コメントアシストの表示を抑制（β）',
-        description:
-          'コメントアシストと予想されるコメントの表示を抑制します。\n※テンプレコメントも対象になる可能性があります',
+        label: '実況: オフセット自動調節可のみ',
+        description: 'オフセット自動調節ができる実況過去ログのみを表示します。',
+        disable: {
+          when: [
+            {
+              key: 'settings:comment:adjustJikkyoOffset',
+              value: false,
+            },
+          ],
+        },
+      },
+      {
+        settingsKey: 'settings:autoSearch:manual',
+        inputType: 'toggle',
+        label: '手動で実行',
+        description: [
+          '再生時に自動検索を実行しないようにします。',
+          'ポップアップの自動検索(再読み込み)ボタンを押すと実行されます。',
+        ].join('\n'),
       },
     ],
   },
+
   {
-    id: 'ng',
     title: 'NG設定',
-    icon: MessageSquareOffIcon,
+    Icon: MessageSquareOffIcon,
     items: [
+      {
+        settingsKey: 'settings:ng:sharingLevel',
+        inputType: 'select',
+        label: 'NG共有レベル',
+        options: [
+          { label: '無', value: 'none' },
+          { label: '弱', value: 'low' },
+          { label: '中', value: 'middle' },
+          { label: '強', value: 'high' },
+        ],
+      },
       {
         settingsKey: 'settings:ng:words',
         inputType: 'ng-list',
@@ -210,11 +303,16 @@ export const SETTINGS_INIT_DATA: SettingsInitData = [
       },
     ],
   },
+
   {
-    id: 'keyboard',
     title: 'キーボード',
-    icon: KeyboardIcon,
+    Icon: KeyboardIcon,
     items: [
+      {
+        settingsKey: 'settings:kbd:toggleDisplayComment',
+        inputType: 'kbd-shortcut',
+        label: 'コメントの表示を切り替える',
+      },
       {
         settingsKey: 'settings:kbd:increaseGlobalOffset',
         inputType: 'kbd-shortcut',
@@ -267,10 +365,10 @@ export const SETTINGS_INIT_DATA: SettingsInitData = [
       },
     ],
   },
+
   {
-    id: 'plugins',
     title: 'プラグイン',
-    icon: BlocksIcon,
+    Icon: BlocksIcon,
     items: Object.entries(PLUGINS).map(([key, value]) => ({
       settingsKey: 'settings:plugins',
       inputType: 'checkcard',

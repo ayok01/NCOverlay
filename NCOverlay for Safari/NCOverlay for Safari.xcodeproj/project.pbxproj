@@ -1,0 +1,1022 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		68259AE62E79CB6A005BBC2A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68259AE52E79CB6A005BBC2A /* AppDelegate.swift */; };
+		68259AE82E79CB6A005BBC2A /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68259AE72E79CB6A005BBC2A /* SceneDelegate.swift */; };
+		68259AEB2E79CB6A005BBC2A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 68259AE92E79CB6A005BBC2A /* LaunchScreen.storyboard */; };
+		68259AEE2E79CB6A005BBC2A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 68259AEC2E79CB6A005BBC2A /* Main.storyboard */; };
+		68259AF72E79CB6A005BBC2A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68259AF62E79CB6A005BBC2A /* AppDelegate.swift */; };
+		68259AFA2E79CB6A005BBC2A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 68259AF82E79CB6A005BBC2A /* Main.storyboard */; };
+		68259B012E79CB6A005BBC2A /* NCOverlay for Safari Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 68259B002E79CB6A005BBC2A /* NCOverlay for Safari Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		68259B0B2E79CB6A005BBC2A /* NCOverlay for Safari Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 68259B0A2E79CB6A005BBC2A /* NCOverlay for Safari Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		68259B102E79CB6A005BBC2A /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 68259AD52E79CB69005BBC2A /* Main.html */; };
+		68259B112E79CB6A005BBC2A /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 68259AD52E79CB69005BBC2A /* Main.html */; };
+		68259B122E79CB6A005BBC2A /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 68259AD72E79CB69005BBC2A /* Icon.png */; };
+		68259B132E79CB6A005BBC2A /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 68259AD72E79CB69005BBC2A /* Icon.png */; };
+		68259B142E79CB6A005BBC2A /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 68259AD82E79CB69005BBC2A /* Style.css */; };
+		68259B152E79CB6A005BBC2A /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 68259AD82E79CB69005BBC2A /* Style.css */; };
+		68259B162E79CB6A005BBC2A /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 68259AD92E79CB69005BBC2A /* Script.js */; };
+		68259B172E79CB6A005BBC2A /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 68259AD92E79CB69005BBC2A /* Script.js */; };
+		68259B182E79CB6A005BBC2A /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68259ADA2E79CB69005BBC2A /* ViewController.swift */; };
+		68259B192E79CB6A005BBC2A /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68259ADA2E79CB69005BBC2A /* ViewController.swift */; };
+		68259B1A2E79CB6A005BBC2A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 68259ADB2E79CB6A005BBC2A /* Assets.xcassets */; };
+		68259B1B2E79CB6A005BBC2A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 68259ADB2E79CB6A005BBC2A /* Assets.xcassets */; };
+		68259B1C2E79CB6A005BBC2A /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68259ADD2E79CB6A005BBC2A /* SafariWebExtensionHandler.swift */; };
+		68259B1D2E79CB6A005BBC2A /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68259ADD2E79CB6A005BBC2A /* SafariWebExtensionHandler.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		68259B022E79CB6A005BBC2A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 68259ACF2E79CB69005BBC2A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 68259AFF2E79CB6A005BBC2A;
+			remoteInfo = "NCOverlay for Safari Extension (iOS)";
+		};
+		68259B0C2E79CB6A005BBC2A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 68259ACF2E79CB69005BBC2A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 68259B092E79CB6A005BBC2A;
+			remoteInfo = "NCOverlay for Safari Extension (macOS)";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		68259B232E79CB6A005BBC2A /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				68259B012E79CB6A005BBC2A /* NCOverlay for Safari Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		68259B2A2E79CB6A005BBC2A /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				68259B0B2E79CB6A005BBC2A /* NCOverlay for Safari Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		68259AD62E79CB69005BBC2A /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
+		68259AD72E79CB69005BBC2A /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		68259AD82E79CB69005BBC2A /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
+		68259AD92E79CB69005BBC2A /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
+		68259ADA2E79CB69005BBC2A /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		68259ADB2E79CB6A005BBC2A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		68259ADD2E79CB6A005BBC2A /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		68259AE22E79CB6A005BBC2A /* NCOverlay for Safari.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NCOverlay for Safari.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		68259AE52E79CB6A005BBC2A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		68259AE72E79CB6A005BBC2A /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		68259AEA2E79CB6A005BBC2A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		68259AED2E79CB6A005BBC2A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		68259AEF2E79CB6A005BBC2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		68259AF42E79CB6A005BBC2A /* NCOverlay for Safari.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NCOverlay for Safari.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		68259AF62E79CB6A005BBC2A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		68259AF92E79CB6A005BBC2A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		68259AFB2E79CB6A005BBC2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		68259B002E79CB6A005BBC2A /* NCOverlay for Safari Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "NCOverlay for Safari Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		68259B052E79CB6A005BBC2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		68259B0A2E79CB6A005BBC2A /* NCOverlay for Safari Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "NCOverlay for Safari Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		68259B0F2E79CB6A005BBC2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AABBCCDD000000000000F001 /* safari-mv3 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "safari-mv3"; path = "../../dist/safari-mv3"; sourceTree = "<group>"; };
+		68DDC8532E79CC4900D0B49B /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
+		68DDC8542E79CC4900D0B49B /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
+		68DDC8552E79CC4900D0B49B /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
+		68DDC8562E79CC4900D0B49B /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = ja; path = ja.lproj/Main.html; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		68259ADF2E79CB6A005BBC2A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		68259AF12E79CB6A005BBC2A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		68259AFD2E79CB6A005BBC2A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		68259B072E79CB6A005BBC2A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		68259ACE2E79CB69005BBC2A = {
+			isa = PBXGroup;
+			children = (
+				68259AD32E79CB69005BBC2A /* Shared (App) */,
+				68259ADC2E79CB6A005BBC2A /* Shared (Extension) */,
+				68259AE42E79CB6A005BBC2A /* iOS (App) */,
+				68259AF52E79CB6A005BBC2A /* macOS (App) */,
+				68259B042E79CB6A005BBC2A /* iOS (Extension) */,
+				68259B0E2E79CB6A005BBC2A /* macOS (Extension) */,
+				68259AE32E79CB6A005BBC2A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		68259AD32E79CB69005BBC2A /* Shared (App) */ = {
+			isa = PBXGroup;
+			children = (
+				68259ADA2E79CB69005BBC2A /* ViewController.swift */,
+				68259ADB2E79CB6A005BBC2A /* Assets.xcassets */,
+				68259AD42E79CB69005BBC2A /* Resources */,
+			);
+			path = "Shared (App)";
+			sourceTree = "<group>";
+		};
+		68259AD42E79CB69005BBC2A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				68259AD52E79CB69005BBC2A /* Main.html */,
+				68259AD72E79CB69005BBC2A /* Icon.png */,
+				68259AD82E79CB69005BBC2A /* Style.css */,
+				68259AD92E79CB69005BBC2A /* Script.js */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		68259ADC2E79CB6A005BBC2A /* Shared (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				68259B2E2E79CB6B005BBC2A /* Resources */,
+				68259ADD2E79CB6A005BBC2A /* SafariWebExtensionHandler.swift */,
+			);
+			path = "Shared (Extension)";
+			sourceTree = "<group>";
+		};
+		68259AE32E79CB6A005BBC2A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				68259AE22E79CB6A005BBC2A /* NCOverlay for Safari.app */,
+				68259AF42E79CB6A005BBC2A /* NCOverlay for Safari.app */,
+				68259B002E79CB6A005BBC2A /* NCOverlay for Safari Extension.appex */,
+				68259B0A2E79CB6A005BBC2A /* NCOverlay for Safari Extension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		68259AE42E79CB6A005BBC2A /* iOS (App) */ = {
+			isa = PBXGroup;
+			children = (
+				68259AE52E79CB6A005BBC2A /* AppDelegate.swift */,
+				68259AE72E79CB6A005BBC2A /* SceneDelegate.swift */,
+				68259AE92E79CB6A005BBC2A /* LaunchScreen.storyboard */,
+				68259AEC2E79CB6A005BBC2A /* Main.storyboard */,
+				68259AEF2E79CB6A005BBC2A /* Info.plist */,
+			);
+			path = "iOS (App)";
+			sourceTree = "<group>";
+		};
+		68259AF52E79CB6A005BBC2A /* macOS (App) */ = {
+			isa = PBXGroup;
+			children = (
+				68259AF62E79CB6A005BBC2A /* AppDelegate.swift */,
+				68259AF82E79CB6A005BBC2A /* Main.storyboard */,
+				68259AFB2E79CB6A005BBC2A /* Info.plist */,
+			);
+			path = "macOS (App)";
+			sourceTree = "<group>";
+		};
+		68259B042E79CB6A005BBC2A /* iOS (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				68259B052E79CB6A005BBC2A /* Info.plist */,
+			);
+			path = "iOS (Extension)";
+			sourceTree = "<group>";
+		};
+		68259B0E2E79CB6A005BBC2A /* macOS (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				68259B0F2E79CB6A005BBC2A /* Info.plist */,
+			);
+			path = "macOS (Extension)";
+			sourceTree = "<group>";
+		};
+		68259B2E2E79CB6B005BBC2A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AABBCCDD000000000000F001 /* safari-mv3 */,
+			);
+			name = Resources;
+			path = "Shared (Extension)";
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		68259AE12E79CB6A005BBC2A /* NCOverlay for Safari (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 68259B242E79CB6A005BBC2A /* Build configuration list for PBXNativeTarget "NCOverlay for Safari (iOS)" */;
+			buildPhases = (
+				68259ADE2E79CB6A005BBC2A /* Sources */,
+				68259ADF2E79CB6A005BBC2A /* Frameworks */,
+				68259AE02E79CB6A005BBC2A /* Resources */,
+				68259B232E79CB6A005BBC2A /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				68259B032E79CB6A005BBC2A /* PBXTargetDependency */,
+			);
+			name = "NCOverlay for Safari (iOS)";
+			packageProductDependencies = (
+			);
+			productName = "NCOverlay for Safari (iOS)";
+			productReference = 68259AE22E79CB6A005BBC2A /* NCOverlay for Safari.app */;
+			productType = "com.apple.product-type.application";
+		};
+		68259AF32E79CB6A005BBC2A /* NCOverlay for Safari (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 68259B2B2E79CB6A005BBC2A /* Build configuration list for PBXNativeTarget "NCOverlay for Safari (macOS)" */;
+			buildPhases = (
+				68259AF02E79CB6A005BBC2A /* Sources */,
+				68259AF12E79CB6A005BBC2A /* Frameworks */,
+				68259AF22E79CB6A005BBC2A /* Resources */,
+				68259B2A2E79CB6A005BBC2A /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				68259B0D2E79CB6A005BBC2A /* PBXTargetDependency */,
+			);
+			name = "NCOverlay for Safari (macOS)";
+			packageProductDependencies = (
+			);
+			productName = "NCOverlay for Safari (macOS)";
+			productReference = 68259AF42E79CB6A005BBC2A /* NCOverlay for Safari.app */;
+			productType = "com.apple.product-type.application";
+		};
+		68259AFF2E79CB6A005BBC2A /* NCOverlay for Safari Extension (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 68259B202E79CB6A005BBC2A /* Build configuration list for PBXNativeTarget "NCOverlay for Safari Extension (iOS)" */;
+			buildPhases = (
+				68259AFC2E79CB6A005BBC2A /* Sources */,
+				68259AFD2E79CB6A005BBC2A /* Frameworks */,
+				68259AFE2E79CB6A005BBC2A /* Resources */,
+				AABBCCDD000000000000F010 /* Copy WXT Safari build output */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "NCOverlay for Safari Extension (iOS)";
+			packageProductDependencies = (
+			);
+			productName = "NCOverlay for Safari Extension (iOS)";
+			productReference = 68259B002E79CB6A005BBC2A /* NCOverlay for Safari Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		68259B092E79CB6A005BBC2A /* NCOverlay for Safari Extension (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 68259B272E79CB6A005BBC2A /* Build configuration list for PBXNativeTarget "NCOverlay for Safari Extension (macOS)" */;
+			buildPhases = (
+				68259B062E79CB6A005BBC2A /* Sources */,
+				68259B072E79CB6A005BBC2A /* Frameworks */,
+				68259B082E79CB6A005BBC2A /* Resources */,
+				AABBCCDD000000000000F011 /* Copy WXT Safari build output */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "NCOverlay for Safari Extension (macOS)";
+			packageProductDependencies = (
+			);
+			productName = "NCOverlay for Safari Extension (macOS)";
+			productReference = 68259B0A2E79CB6A005BBC2A /* NCOverlay for Safari Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		68259ACF2E79CB69005BBC2A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					68259AE12E79CB6A005BBC2A = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					68259AF32E79CB6A005BBC2A = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					68259AFF2E79CB6A005BBC2A = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					68259B092E79CB6A005BBC2A = {
+						CreatedOnToolsVersion = 26.0;
+					};
+				};
+			};
+			buildConfigurationList = 68259AD22E79CB69005BBC2A /* Build configuration list for PBXProject "NCOverlay for Safari" */;
+			developmentRegion = ja;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				ja,
+			);
+			mainGroup = 68259ACE2E79CB69005BBC2A;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 68259AE32E79CB6A005BBC2A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				68259AE12E79CB6A005BBC2A /* NCOverlay for Safari (iOS) */,
+				68259AF32E79CB6A005BBC2A /* NCOverlay for Safari (macOS) */,
+				68259AFF2E79CB6A005BBC2A /* NCOverlay for Safari Extension (iOS) */,
+				68259B092E79CB6A005BBC2A /* NCOverlay for Safari Extension (macOS) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		68259AE02E79CB6A005BBC2A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				68259B122E79CB6A005BBC2A /* Icon.png in Resources */,
+				68259AEB2E79CB6A005BBC2A /* LaunchScreen.storyboard in Resources */,
+				68259B102E79CB6A005BBC2A /* Main.html in Resources */,
+				68259B162E79CB6A005BBC2A /* Script.js in Resources */,
+				68259B1A2E79CB6A005BBC2A /* Assets.xcassets in Resources */,
+				68259AEE2E79CB6A005BBC2A /* Main.storyboard in Resources */,
+				68259B142E79CB6A005BBC2A /* Style.css in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		68259AF22E79CB6A005BBC2A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				68259B132E79CB6A005BBC2A /* Icon.png in Resources */,
+				68259B152E79CB6A005BBC2A /* Style.css in Resources */,
+				68259AFA2E79CB6A005BBC2A /* Main.storyboard in Resources */,
+				68259B172E79CB6A005BBC2A /* Script.js in Resources */,
+				68259B1B2E79CB6A005BBC2A /* Assets.xcassets in Resources */,
+				68259B112E79CB6A005BBC2A /* Main.html in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		68259AFE2E79CB6A005BBC2A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		68259B082E79CB6A005BBC2A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		AABBCCDD000000000000F010 /* Copy WXT Safari build output */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy WXT Safari build output";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "set -e\nSRC=\"${SRCROOT}/../dist/safari-mv3\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nif [ ! -d \"$SRC\" ]; then\n  echo \"error: WXT Safari build output not found at $SRC — run 'bun run build:safari' first\"\n  exit 1\nfi\nmkdir -p \"$DEST\"\n/usr/bin/rsync -a --delete --exclude='Info.plist' --exclude='_CodeSignature' --exclude='embedded.provisionprofile' \"$SRC/\" \"$DEST/\"\n";
+		};
+		AABBCCDD000000000000F011 /* Copy WXT Safari build output */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy WXT Safari build output";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "set -e\nSRC=\"${SRCROOT}/../dist/safari-mv3\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nif [ ! -d \"$SRC\" ]; then\n  echo \"error: WXT Safari build output not found at $SRC — run 'bun run build:safari' first\"\n  exit 1\nfi\nmkdir -p \"$DEST\"\n/usr/bin/rsync -a --delete --exclude='Info.plist' --exclude='_CodeSignature' --exclude='embedded.provisionprofile' \"$SRC/\" \"$DEST/\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		68259ADE2E79CB6A005BBC2A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				68259B182E79CB6A005BBC2A /* ViewController.swift in Sources */,
+				68259AE62E79CB6A005BBC2A /* AppDelegate.swift in Sources */,
+				68259AE82E79CB6A005BBC2A /* SceneDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		68259AF02E79CB6A005BBC2A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				68259B192E79CB6A005BBC2A /* ViewController.swift in Sources */,
+				68259AF72E79CB6A005BBC2A /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		68259AFC2E79CB6A005BBC2A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				68259B1C2E79CB6A005BBC2A /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		68259B062E79CB6A005BBC2A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				68259B1D2E79CB6A005BBC2A /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		68259B032E79CB6A005BBC2A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 68259AFF2E79CB6A005BBC2A /* NCOverlay for Safari Extension (iOS) */;
+			targetProxy = 68259B022E79CB6A005BBC2A /* PBXContainerItemProxy */;
+		};
+		68259B0D2E79CB6A005BBC2A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 68259B092E79CB6A005BBC2A /* NCOverlay for Safari Extension (macOS) */;
+			targetProxy = 68259B0C2E79CB6A005BBC2A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		68259AD52E79CB69005BBC2A /* Main.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				68259AD62E79CB69005BBC2A /* Base */,
+				68DDC8562E79CC4900D0B49B /* ja */,
+			);
+			name = Main.html;
+			sourceTree = "<group>";
+		};
+		68259AE92E79CB6A005BBC2A /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				68259AEA2E79CB6A005BBC2A /* Base */,
+				68DDC8532E79CC4900D0B49B /* ja */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		68259AEC2E79CB6A005BBC2A /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				68259AED2E79CB6A005BBC2A /* Base */,
+				68DDC8542E79CC4900D0B49B /* ja */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		68259AF82E79CB6A005BBC2A /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				68259AF92E79CB6A005BBC2A /* Base */,
+				68DDC8552E79CC4900D0B49B /* ja */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		68259B1E2E79CB6A005BBC2A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		68259B1F2E79CB6A005BBC2A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		68259B212E79CB6A005BBC2A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "NCOverlay for Safari Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = me.midra.ncoverlay.safari.Extension;
+				PRODUCT_NAME = "NCOverlay for Safari Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		68259B222E79CB6A005BBC2A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XH7WQ4F778;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "NCOverlay for Safari Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = me.midra.ncoverlay.safari.Extension;
+				PRODUCT_NAME = "NCOverlay for Safari Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		68259B252E79CB6A005BBC2A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XH7WQ4F778;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "NCOverlay for Safari";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = me.midra.ncoverlay.safari;
+				PRODUCT_NAME = "NCOverlay for Safari";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		68259B262E79CB6A005BBC2A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XH7WQ4F778;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "NCOverlay for Safari";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = kk.midra.ncoverlay.safari;
+				PRODUCT_NAME = "NCOverlay for Safari";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		68259B282E79CB6A005BBC2A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "NCOverlay for Safari Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = me.midra.ncoverlay.safari.Extension;
+				PRODUCT_NAME = "NCOverlay for Safari Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		68259B292E79CB6A005BBC2A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XH7WQ4F778;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "NCOverlay for Safari Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ya.midra.ncoverlay.safari.Extension;
+				PRODUCT_NAME = "NCOverlay for Safari Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		68259B2C2E79CB6A005BBC2A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "NCOverlay for Safari";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = me.midra.ncoverlay.safari;
+				PRODUCT_NAME = "NCOverlay for Safari";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		68259B2D2E79CB6A005BBC2A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XH7WQ4F778;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "NCOverlay for Safari";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = kk.midra.ncoverlay.safari;
+				PRODUCT_NAME = "NCOverlay for Safari";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		68259AD22E79CB69005BBC2A /* Build configuration list for PBXProject "NCOverlay for Safari" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				68259B1E2E79CB6A005BBC2A /* Debug */,
+				68259B1F2E79CB6A005BBC2A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		68259B202E79CB6A005BBC2A /* Build configuration list for PBXNativeTarget "NCOverlay for Safari Extension (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				68259B212E79CB6A005BBC2A /* Debug */,
+				68259B222E79CB6A005BBC2A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		68259B242E79CB6A005BBC2A /* Build configuration list for PBXNativeTarget "NCOverlay for Safari (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				68259B252E79CB6A005BBC2A /* Debug */,
+				68259B262E79CB6A005BBC2A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		68259B272E79CB6A005BBC2A /* Build configuration list for PBXNativeTarget "NCOverlay for Safari Extension (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				68259B282E79CB6A005BBC2A /* Debug */,
+				68259B292E79CB6A005BBC2A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		68259B2B2E79CB6A005BBC2A /* Build configuration list for PBXNativeTarget "NCOverlay for Safari (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				68259B2C2E79CB6A005BBC2A /* Debug */,
+				68259B2D2E79CB6A005BBC2A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 68259ACF2E79CB69005BBC2A /* Project object */;
+}

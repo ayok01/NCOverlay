@@ -1,39 +1,40 @@
-import type { StorageItems, SettingsKey } from '@/types/storage'
+import type { SettingsKey, StorageItems } from '@/types/storage'
 import type { SettingsInputBaseProps } from '.'
 
-import { CheckboxGroup, Checkbox } from '@heroui/react'
+import { useEffect, useState } from 'react'
+import { Checkbox, CheckboxGroup } from '@heroui/react'
 import { CircleHelpIcon } from 'lucide-react'
 
 import { useSettings } from '@/hooks/useSettings'
 
 import { Tooltip } from '@/components/Tooltip'
 
+import { initConditional } from '.'
+
 export type Key = {
-  [key in SettingsKey]: StorageItems[key] extends (string | number)[]
-    ? key
-    : never
+  [P in SettingsKey]: StorageItems[P] extends (string | number)[] ? P : never
 }[SettingsKey]
 
-export type Props<K extends Key = Key> = SettingsInputBaseProps<
-  K,
-  'checkbox',
-  {
-    options: {
-      label: string
-      value: StorageItems[K][number]
-    }[]
-  }
->
+export interface Props<K extends Key = Key>
+  extends SettingsInputBaseProps<K, 'checkbox'> {
+  options: {
+    label: string
+    value: StorageItems[K][number]
+  }[]
+}
 
-export const Input: React.FC<Props> = (props) => {
+export function Input(props: Omit<Props, 'inputType'>) {
   const [value, setValue] = useSettings(props.settingsKey)
+  const [isDisabled, setIsDisabled] = useState(false)
+
+  useEffect(() => initConditional(props.disable, setIsDisabled), [])
 
   return (
     <CheckboxGroup
       classNames={{
         base: 'gap-2 py-2',
-        label: 'text-small text-foreground',
-        wrapper: 'gap-x-[5px] gap-y-1.5',
+        label: 'text-foreground text-small',
+        wrapper: 'gap-x-1.25 gap-y-1.5',
       }}
       size="sm"
       orientation="horizontal"
@@ -51,28 +52,29 @@ export const Input: React.FC<Props> = (props) => {
           )}
         </div>
       }
+      isDisabled={isDisabled}
       value={value}
       onChange={setValue as any}
     >
-      {props.options.map(({ label, value }, idx) => (
+      {props.options.map(({ label, value }) => (
         <Checkbox
-          key={idx}
+          key={value}
           classNames={{
             base: [
               'flex-1',
-              'max-w-none min-w-fit',
+              'min-w-fit max-w-[55%]',
               'm-0 px-1.5 py-1',
               'bg-default-100 hover:bg-default-200',
               'data-[selected=true]:bg-primary/15 dark:data-[selected=true]:bg-primary/20',
               'rounded-full',
-              'border-divider hover:border-default-400 border-1',
+              'border-1 border-divider hover:border-default-400',
               'data-[selected=true]:border-primary',
               'transition-colors motion-reduce:transition-none',
               'cursor-pointer',
             ],
             wrapper: [
               'm-0 rounded-full',
-              'before:!bg-default-50 before:rounded-full before:border-1',
+              'before:rounded-full before:border-1 before:bg-default-50!',
               'after:rounded-full',
             ],
             label: 'flex w-full flex-row',
@@ -81,7 +83,7 @@ export const Input: React.FC<Props> = (props) => {
         >
           <div className="w-full min-w-2" />
           <span className="line-clamp-1 max-w-full shrink-0">{label}</span>
-          <div className="w-full min-w-1" />
+          <div className="w-full min-w-2" />
         </Checkbox>
       ))}
     </CheckboxGroup>

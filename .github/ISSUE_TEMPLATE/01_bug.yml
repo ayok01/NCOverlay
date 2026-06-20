@@ -46,9 +46,23 @@ body:
         - label: Prime Video
         - label: Netflix
         - label: Hulu
+        - label: Disney+
         - label: ニコニコ動画
-        - label: NHKプラス
+        - label: NHK ONE
+        - label: NHKオンデマンド
         - label: TVer
+
+  - type: checkboxes
+    id: auto-search-targets
+    attributes:
+      label: 自動検索の検索対象
+      options:
+        - label: 公式
+        - label: dアニメ
+        - label: dアニメ(分割)
+        - label: コメント専用
+        - label: 実況
+        - label: 生放送
 
   - type: textarea
     id: video

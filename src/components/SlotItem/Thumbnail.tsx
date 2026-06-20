@@ -1,16 +1,16 @@
-import type { JikkyoChannelId } from '@midra/nco-api/types/constants'
+import type { JikkyoChannelId } from '@midra/nco-utils/types/api/constants'
 import type { StateSlotDetail } from '@/ncoverlay/state'
 
 import { Image, cn } from '@heroui/react'
+import { FileTextIcon } from 'lucide-react'
+import { JIKKYO_CHANNELS } from '@midra/nco-utils/api/constants'
 
-import { JIKKYO_CHANNELS } from '@midra/nco-api/constants'
-
-import { SourceBadge } from './SourceBadge'
 import { AutoLoadedBadge } from './AutoLoadedBadge'
-import { Offset } from './Offset'
 import { Duration } from './Duration'
+import { Offset } from './Offset'
+import { SourceBadge } from './SourceBadge'
 
-export type ThumbnailProps = {
+export interface ThumbnailProps {
   id: StateSlotDetail['id']
   type: StateSlotDetail['type']
   offsetMs: StateSlotDetail['offsetMs']
@@ -19,14 +19,14 @@ export type ThumbnailProps = {
   isSearch?: boolean
 }
 
-export const Thumbnail: React.FC<ThumbnailProps> = ({
+export function Thumbnail({
   id,
   type,
   offsetMs,
   isAutoLoaded,
   info,
   isSearch,
-}) => {
+}: ThumbnailProps) {
   let thumbnail: React.JSX.Element | undefined
 
   if (type === 'jikkyo') {
@@ -34,7 +34,7 @@ export const Thumbnail: React.FC<ThumbnailProps> = ({
 
     // 実況のチャンネル情報
     thumbnail = (
-      <div className="bg-content3 h-full rounded-lg p-[1px]">
+      <div className="h-full rounded-lg bg-content3 p-px">
         <div
           className={cn(
             'relative',
@@ -45,7 +45,7 @@ export const Thumbnail: React.FC<ThumbnailProps> = ({
             'select-none'
           )}
         >
-          <span className={cn('absolute top-[4px]', 'text-mini text-white/80')}>
+          <span className={cn('absolute top-1', 'text-mini text-white/80')}>
             {jkChId}
           </span>
 
@@ -61,11 +61,40 @@ export const Thumbnail: React.FC<ThumbnailProps> = ({
         </div>
       </div>
     )
+  } else if (type === 'file' || type === 'nicolog') {
+    thumbnail = (
+      <div className="h-full rounded-lg bg-content3 p-px">
+        <div
+          className={cn(
+            'relative',
+            'flex flex-col items-center justify-center',
+            'aspect-video h-full overflow-hidden rounded-lg',
+            'px-1',
+            'bg-blue-500 dark:bg-blue-600',
+            'select-none'
+          )}
+        >
+          {type === 'nicolog' ? (
+            <span
+              className={cn(
+                'line-clamp-1',
+                'font-bold text-white',
+                isSearch ? 'text-mini' : 'text-small'
+              )}
+            >
+              nicolog
+            </span>
+          ) : (
+            <FileTextIcon className="size-8 text-white" strokeWidth={1.5} />
+          )}
+        </div>
+      </div>
+    )
   } else if ('thumbnail' in info) {
     thumbnail = (
       <Image
         classNames={{
-          wrapper: 'bg-foreground-300 h-full rounded-lg p-[1px]',
+          wrapper: 'h-full rounded-lg bg-foreground-300 p-px',
           img: 'aspect-video h-full rounded-lg object-cover',
         }}
         src={info.thumbnail}
@@ -80,8 +109,8 @@ export const Thumbnail: React.FC<ThumbnailProps> = ({
 
       <div
         className={cn(
-          'absolute top-[2px] left-[2px] z-10',
-          'flex flex-col items-start gap-[1px]'
+          'absolute top-0.5 left-0.5 z-10',
+          'flex flex-col items-start gap-px'
         )}
       >
         {/* ソース */}
@@ -93,13 +122,13 @@ export const Thumbnail: React.FC<ThumbnailProps> = ({
 
       {/* オフセット */}
       <Offset
-        className="absolute bottom-[2px] left-[2px] z-10"
+        className="absolute bottom-0.5 left-0.5 z-10"
         offsetMs={offsetMs}
       />
 
       {/* 長さ */}
       <Duration
-        className="absolute right-[2px] bottom-[2px] z-10"
+        className="absolute right-0.5 bottom-0.5 z-10"
         duration={info.duration}
       />
     </>

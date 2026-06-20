@@ -1,13 +1,16 @@
-import type { BaseOptions, V1Thread } from '@xpadev-net/niconicomments'
+import type { V1Thread } from '@midra/nco-utils/types/api/niconico/v1/threads'
+import type { BaseOptions } from '@xpadev-net/niconicomments'
 import type { StorageItems } from '@/types/storage'
+import type { NCOPatcherFunctions } from './patcher'
 
 import NiconiComments from '@xpadev-net/niconicomments'
 
 import { logger } from '@/utils/logger'
 import { getObjectFitRect } from '@/utils/dom/getObjectFitRect'
-import { sendUtilsMessage } from '@/utils/extension/messaging'
+import { sendExtensionMessage } from '@/messaging/extension'
 
-type NiconiCommentsOptions = Partial<Omit<BaseOptions, 'mode' | 'format'>>
+interface NiconiCommentsOptions
+  extends Partial<Omit<BaseOptions, 'mode' | 'format'>> {}
 
 /**
  * NCOverlayの描画担当
@@ -19,13 +22,23 @@ export class NCORenderer {
   #niconicomments: NiconiComments | null = null
   #threads: V1Thread[] | null = null
   #options: NiconiCommentsOptions | null = null
+
   #offset: number = 0
+  #startTimestamp: number = 0
+  #startTime: number = 0
+  #startTimeVpos: number = 0
+  #playbackRate: number = 1
 
   #intervalMs: number = 1000 / 60
   #frameId: number = 0
   #lastFrameTime: number = 0
 
-  constructor(video: HTMLVideoElement) {
+  getCurrentTime: () => number
+
+  constructor(
+    video: HTMLVideoElement,
+    { getCurrentTime }: NCOPatcherFunctions = {}
+  ) {
     this.video = video
     this.video.classList.add('NCOverlay-Video')
 
@@ -33,6 +46,8 @@ export class NCORenderer {
     this.canvas.classList.add('NCOverlay-Canvas')
     this.canvas.width = 1920
     this.canvas.height = 1080
+
+    this.getCurrentTime = getCurrentTime ?? (() => this.video.currentTime)
   }
 
   dispose() {
@@ -43,16 +58,21 @@ export class NCORenderer {
     this.canvas.remove()
 
     this.video.classList.remove('NCOverlay-Video')
-    this.canvas.classList.remove('NCOverlay-Canvas')
   }
 
   clear() {
     this.stop()
 
     this.#niconicomments?.clear()
+    this.#niconicomments?.destroy()
     this.#niconicomments = null
     this.#threads = null
+
     this.#offset = 0
+    this.#startTimestamp = 0
+    this.#startTime = 0
+    this.#startTimeVpos = 0
+    this.#playbackRate = 1
 
     document.body.classList.remove('NCOverlay-Capture')
   }
@@ -74,6 +94,7 @@ export class NCORenderer {
   setOffset(offset: number) {
     if (this.#offset !== offset) {
       this.#offset = offset
+      this.#startTimeVpos = Math.max((this.#startTime - this.#offset) * 100, 0)
 
       if (!this.#frameId) {
         this.render()
@@ -95,8 +116,16 @@ export class NCORenderer {
     this.canvas.style.opacity = opacity.toString()
   }
 
+  updateTime() {
+    this.#startTimestamp = performance.now()
+    this.#startTime = this.getCurrentTime()
+    this.#startTimeVpos = Math.max((this.#startTime - this.#offset) * 100, 0)
+    this.#playbackRate = this.video.playbackRate
+  }
+
   reload() {
     this.#niconicomments?.clear()
+    this.#niconicomments?.destroy()
     this.#niconicomments = null
 
     if (this.#threads) {
@@ -106,29 +135,48 @@ export class NCORenderer {
         ...this.#options,
       })
 
-      this.render()
+      this.rerender()
     }
   }
 
   render() {
-    const time = this.video.currentTime - this.#offset
+    const vpos =
+      this.#startTimeVpos +
+      ((performance.now() - this.#startTimestamp) * this.#playbackRate) / 10
 
-    this.#niconicomments?.drawCanvas(0 < time ? (time * 100) | 0 : 0)
+    this.#niconicomments?.drawCanvas(vpos)
+  }
+
+  rerender() {
+    this.updateTime()
+    this.render()
   }
 
   start() {
-    this.#frameId = window.requestAnimationFrame((time) => {
-      this.#frameReqCallback(time)
-    })
+    this.#stopRequestAnimationFrame()
+
+    this.updateTime()
+
+    this.#startRequestAnimationFrame()
   }
 
   stop() {
-    window.cancelAnimationFrame(this.#frameId)
-
-    this.#frameId = 0
+    this.#stopRequestAnimationFrame()
   }
 
-  #frameReqCallback(time: number) {
+  #startRequestAnimationFrame() {
+    this.#frameId = requestAnimationFrame(this.#animationFrameCallback)
+  }
+
+  #stopRequestAnimationFrame() {
+    if (this.#frameId) {
+      cancelAnimationFrame(this.#frameId)
+
+      this.#frameId = 0
+    }
+  }
+
+  #animationFrameCallback = (time: number) => {
     if (this.#intervalMs) {
       const delta = time - this.#lastFrameTime
 
@@ -141,7 +189,7 @@ export class NCORenderer {
       this.render()
     }
 
-    this.start()
+    this.#startRequestAnimationFrame()
   }
 
   /**
@@ -158,7 +206,7 @@ export class NCORenderer {
         let data: number[] | undefined
 
         try {
-          data = await sendUtilsMessage('captureTab', {
+          data = await sendExtensionMessage('bg:captureTab', {
             rect: getObjectFitRect(true, this.canvas, 1920, 1080),
             scale: window.devicePixelRatio,
             format,

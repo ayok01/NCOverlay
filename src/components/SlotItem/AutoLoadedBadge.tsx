@@ -2,21 +2,21 @@ import type { StateSlotDetail } from '@/ncoverlay/state'
 
 import { cn } from '@heroui/react'
 
-export type AutoLoadedBadgeProps = {
+export interface AutoLoadedBadgeProps {
   className?: string
   isAutoLoaded: StateSlotDetail['isAutoLoaded']
 }
 
-export const AutoLoadedBadge: React.FC<AutoLoadedBadgeProps> = ({
+export function AutoLoadedBadge({
   className,
   isAutoLoaded,
-}) => {
+}: AutoLoadedBadgeProps) {
   if (isAutoLoaded) return
 
   return (
     <div
       className={cn(
-        'px-1 py-[1px]',
+        'px-1 py-px',
         'border-1 border-gray-800/50',
         'rounded-md',
         'text-mini',

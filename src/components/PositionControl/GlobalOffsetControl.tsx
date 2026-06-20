@@ -1,16 +1,14 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { ncoState, useNcoState } from '@/hooks/useNco'
 
 import { OffsetControl } from '@/components/OffsetControl'
 
-export type GlobalOffsetControlProps = {
+export interface GlobalOffsetControlProps {
   compact?: boolean
 }
 
-export const GlobalOffsetControl: React.FC<GlobalOffsetControlProps> = ({
-  compact,
-}) => {
+export function GlobalOffsetControl({ compact }: GlobalOffsetControlProps) {
   const stateOffset = useNcoState('offset')
 
   const [currentOffset, setCurrentOffset] = useState(0)

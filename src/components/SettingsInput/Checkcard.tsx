@@ -1,47 +1,49 @@
-import type { StorageItems, SettingsKey } from '@/types/storage'
+import type { SettingsKey, StorageItems } from '@/types/storage'
 import type { SettingsInputBaseProps } from '.'
 
-import { CheckboxGroup, Checkbox, cn } from '@heroui/react'
+import { useEffect, useState } from 'react'
+import { Checkbox, CheckboxGroup, cn } from '@heroui/react'
 
 import { useSettings } from '@/hooks/useSettings'
 
+import { initConditional } from '.'
+
 export type Key = {
-  [key in SettingsKey]: StorageItems[key] extends (string | number)[]
-    ? key
-    : never
+  [P in SettingsKey]: StorageItems[P] extends (string | number)[] ? P : never
 }[SettingsKey]
 
-export type Props<K extends Key = Key> = SettingsInputBaseProps<
-  K,
-  'checkcard',
-  {
-    options: {
-      label: string
-      value: StorageItems[K][number]
-      description?: string
-    }[]
-  }
->
+export interface Props<K extends Key = Key>
+  extends SettingsInputBaseProps<K, 'checkcard'> {
+  options: {
+    label: string
+    value: StorageItems[K][number]
+    description?: string
+  }[]
+}
 
-export const Input: React.FC<Props> = (props) => {
+export function Input(props: Omit<Props, 'inputType'>) {
   const [value, setValue] = useSettings(props.settingsKey)
+  const [isDisabled, setIsDisabled] = useState(false)
+
+  useEffect(() => initConditional(props.disable, setIsDisabled), [])
 
   return (
     <CheckboxGroup
       classNames={{
         base: 'gap-2 py-2',
-        label: 'text-small text-foreground',
+        label: 'text-foreground text-small',
         wrapper: 'gap-2',
       }}
       size="sm"
       orientation="vertical"
       label={props.label}
+      isDisabled={isDisabled}
       value={value}
       onChange={setValue as any}
     >
-      {props.options.map(({ label, description, value }, idx) => (
+      {props.options.map(({ label, description, value }) => (
         <Checkbox
-          key={idx}
+          key={value}
           classNames={{
             base: [
               'gap-0.5',
@@ -50,25 +52,25 @@ export const Input: React.FC<Props> = (props) => {
               'bg-default-100 hover:bg-default-200',
               'data-[selected=true]:bg-primary/15 dark:data-[selected=true]:bg-primary/20',
               'rounded-medium',
-              'border-divider hover:border-default-400 border-1',
+              'border-1 border-divider hover:border-default-400',
               'data-[selected=true]:border-primary',
               'transition-colors motion-reduce:transition-none',
               'cursor-pointer',
             ],
             wrapper: [
               'rounded-full',
-              'before:!bg-default-50 before:rounded-full before:border-1',
+              'before:rounded-full before:border-1 before:bg-default-50!',
               'after:rounded-full',
             ],
             label: 'flex w-full flex-col gap-0.5',
           }}
           value={value}
         >
-          <span className="text-small line-clamp-2">{label}</span>
+          <span className="line-clamp-2 text-small">{label}</span>
           {description && (
             <span
               className={cn(
-                'text-tiny line-clamp-2',
+                'line-clamp-2 text-tiny',
                 'text-foreground-500 dark:text-foreground-600'
               )}
             >

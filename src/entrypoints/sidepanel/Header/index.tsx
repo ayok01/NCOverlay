@@ -1,0 +1,87 @@
+import type { ButtonProps } from '@heroui/react'
+
+import { useEffect, useState } from 'react'
+import { Button, cn } from '@heroui/react'
+import { Settings2Icon, SquareArrowOutUpRight, XIcon } from 'lucide-react'
+
+import { webext } from '@/utils/webext'
+import { sendExtensionMessage } from '@/messaging/extension'
+
+import { Tooltip } from '@/components/Tooltip'
+
+import { Options } from './Options'
+
+export function Header() {
+  const [isOptionOpen, setIsOptionOpen] = useState(false)
+  const [isShownNewWindowButton, setIsShownNewWindowButton] = useState(false)
+
+  useEffect(() => {
+    webext.runtime.getPlatformInfo().then(({ os }) => {
+      setIsShownNewWindowButton(!webext.inPopout && os !== 'android')
+    })
+  }, [])
+
+  const openPopout: ButtonProps['onClick'] = (evt) => {
+    sendExtensionMessage('bg:openPopout', {
+      type: 'sidePanel',
+      createData: {
+        top: evt.screenY - evt.pageY,
+        left: evt.screenX - evt.pageX,
+        width: window.innerWidth,
+        height: window.innerHeight,
+      },
+    })
+
+    webext.sidePanel.close()
+  }
+
+  return (
+    <div className="w-full border-foreground-200 border-b-1 bg-content1">
+      <div
+        className={cn(
+          'flex flex-row items-center justify-between',
+          'p-2',
+          'font-semibold text-medium'
+        )}
+      >
+        <div className="flex flex-row items-center">
+          <span>コメントリスト</span>
+        </div>
+
+        <div className="flex shrink-0 flex-row gap-1">
+          {isShownNewWindowButton && (
+            <Tooltip placement="left" content="新しいウィンドウで開く">
+              <Button
+                className="shrink-0 p-0"
+                size="sm"
+                variant="light"
+                isIconOnly
+                disableRipple
+                startContent={<SquareArrowOutUpRight className="size-4" />}
+                onClick={openPopout}
+              />
+            </Tooltip>
+          )}
+
+          <Button
+            className="shrink-0 p-0"
+            size="sm"
+            variant="light"
+            isIconOnly
+            disableRipple
+            startContent={
+              isOptionOpen ? (
+                <XIcon className="size-4" />
+              ) : (
+                <Settings2Icon className="size-4" />
+              )
+            }
+            onPress={() => setIsOptionOpen((v) => !v)}
+          />
+        </div>
+      </div>
+
+      <Options isOpen={isOptionOpen} />
+    </div>
+  )
+}

@@ -3,12 +3,12 @@ import type { StateSlotDetail } from '@/ncoverlay/state'
 import { cn } from '@heroui/react'
 import { ClockIcon } from 'lucide-react'
 
-export type OffsetProps = {
+export interface OffsetProps {
   className?: string
   offsetMs: StateSlotDetail['offsetMs']
 }
 
-export const Offset: React.FC<OffsetProps> = ({ className, offsetMs }) => {
+export function Offset({ className, offsetMs }: OffsetProps) {
   const offset = Math.round((offsetMs ?? 0) / 1000)
 
   return (
@@ -16,7 +16,7 @@ export const Offset: React.FC<OffsetProps> = ({ className, offsetMs }) => {
       <div
         className={cn(
           'flex flex-row items-center gap-0.5',
-          'px-1 py-[1px]',
+          'px-1 py-px',
           'border-1 border-white/25',
           'rounded-md',
           'text-mini',

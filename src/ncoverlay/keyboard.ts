@@ -7,14 +7,14 @@ import hotkeys from 'hotkeys-js'
 
 import { storage } from '@/utils/storage/extension'
 
-type NCOKeyboardFunctions = Readonly<{
-  jumpMarker: NCOverlay['jumpMarker']
-}>
+interface NCOKeyboardFunctions {
+  readonly jumpMarker: NCOverlay['jumpMarker']
+}
 
-const register = (
+function register(
   key: Extract<StorageKey, `settings:kbd:${string}`>,
   method: (...args: Parameters<KeyHandler>) => void
-) => {
+) {
   let tmpShortcutKey: string | null = null
 
   return storage.watch(key, (shortcutKey) => {
@@ -63,6 +63,22 @@ export class NCOKeyboard {
 
   async #registerEventListener() {
     this.#storageOnChangeRemoveListeners.push(
+      register('settings:kbd:toggleDisplayComment', async () => {
+        const opacity = await storage.get('settings:comment:opacity')
+
+        // 非表示
+        if (opacity) {
+          await storage.set('tmp:comment:opacity', opacity)
+          await storage.set('settings:comment:opacity', 0)
+        }
+        // 表示
+        else {
+          const tmpOpacity = await storage.get('tmp:comment:opacity')
+
+          await storage.set('settings:comment:opacity', tmpOpacity || 100)
+        }
+      }),
+
       register('settings:kbd:increaseGlobalOffset', async () => {
         this.setOffset((await this.getOffset()) + 1)
       }),
@@ -76,27 +92,27 @@ export class NCOKeyboard {
       }),
 
       register('settings:kbd:jumpMarkerToStart', () => {
-        this.#functions.jumpMarker('ｷﾀ-')
+        this.#functions.jumpMarker('start')
       }),
 
       register('settings:kbd:jumpMarkerToOP', () => {
-        this.#functions.jumpMarker('OP')
+        this.#functions.jumpMarker('op')
       }),
 
       register('settings:kbd:jumpMarkerToA', () => {
-        this.#functions.jumpMarker('A')
+        this.#functions.jumpMarker('aPart')
       }),
 
       register('settings:kbd:jumpMarkerToB', () => {
-        this.#functions.jumpMarker('B')
+        this.#functions.jumpMarker('bPart')
       }),
 
       register('settings:kbd:jumpMarkerToED', () => {
-        this.#functions.jumpMarker('ED')
+        this.#functions.jumpMarker('ed')
       }),
 
       register('settings:kbd:jumpMarkerToC', () => {
-        this.#functions.jumpMarker('C')
+        this.#functions.jumpMarker('cPart')
       }),
 
       register('settings:kbd:resetMarker', () => {

@@ -1,60 +1,44 @@
-import type { StateSlotDetail, StateSlotDetailJikkyo } from '@/ncoverlay/state'
+import type { StateSlotDetail } from '@/ncoverlay/state'
 
-import { useMemo } from 'react'
 import { Link, cn } from '@heroui/react'
 import { useOverflowDetector } from 'react-detectable-overflow'
 
-import { ProgramIcons } from '@/entrypoints/popup/SidePane/JikkyoEpgSelector/Program'
+import { PROGRAM_FLAG_REGEXP } from '@/constants'
 
-const programIconsRegExp = /^(?:(?:🈞|🈟|🈡)\s?)+/
+import { ProgramIcons } from '@/components/ProgramIcons'
 
-export type TitleProps = {
+export interface TitleProps {
   id: StateSlotDetail['info']['id']
-  source: StateSlotDetailJikkyo['info']['source']
+  source: StateSlotDetail['info']['source']
   title: StateSlotDetail['info']['title']
   isSearch?: boolean
 }
 
-export const Title: React.FC<TitleProps> = ({
-  id,
-  source,
-  title,
-  isSearch,
-}) => {
+const BASE_URLS: Record<NonNullable<TitleProps['source']>, string> = {
+  niconico: 'https://www.nicovideo.jp/watch/',
+  syobocal: 'https://cal.syoboi.jp/tid/',
+  tver: 'https://tver.jp/series/',
+  nhk_timetable: 'https://www.nhk.jp/timetable/130/tv/',
+  nhk_chronicle: 'https://www.nhk.or.jp/archives/chronicle/detail/?crnid=',
+  nicolog: 'https://nicolog.ecchi.club/nico-live-anime/',
+}
+
+export function Title({ id, source, title, isSearch }: TitleProps) {
   const { ref, overflow } = useOverflowDetector()
 
-  const url = useMemo(() => {
-    if (!id) return null
-
-    let baseUrl: string
-
-    if (source === 'syobocal') {
-      baseUrl = 'https://cal.syoboi.jp/tid/'
-    } else if (source === 'tver') {
-      baseUrl = 'https://tver.jp/series/'
-    } else if (source === 'nhkPlus') {
-      baseUrl = 'https://plus.nhk.jp/watch/st/'
-    } else {
-      baseUrl = 'https://www.nicovideo.jp/watch/'
-    }
-
-    return new URL(id, baseUrl)
-  }, [id, source])
-
-  const icon = useMemo(() => {
-    const prefix = title.match(programIconsRegExp)?.[0]
-
-    return {
-      revival: prefix?.includes('🈞'),
-      new: prefix?.includes('🈟'),
-      last: prefix?.includes('🈡'),
-    }
-  }, [title])
+  const baseUrl = source ? BASE_URLS[source] : BASE_URLS.niconico
+  const url = id && encodeURI(baseUrl + id)
+  const prefix = title.match(PROGRAM_FLAG_REGEXP)?.[0]
+  const icon = {
+    new: prefix?.includes('🈟'),
+    last: prefix?.includes('🈡'),
+    revival: prefix?.includes('🈞'),
+  }
 
   const element = (
     <span
       className={cn(
-        'line-clamp-3 font-semibold break-all whitespace-pre-wrap',
+        'line-clamp-3 whitespace-pre-wrap break-all font-semibold',
         isSearch ? 'text-mini' : 'text-tiny'
       )}
       title={overflow ? title : undefined}
@@ -62,7 +46,7 @@ export const Title: React.FC<TitleProps> = ({
     >
       <ProgramIcons icon={icon} />
 
-      <span>{title.replace(programIconsRegExp, '')}</span>
+      <span>{title.replace(PROGRAM_FLAG_REGEXP, '')}</span>
     </span>
   )
 
@@ -71,7 +55,7 @@ export const Title: React.FC<TitleProps> = ({
       {isSearch || !url ? (
         element
       ) : (
-        <Link color="foreground" href={url.href} isExternal>
+        <Link color="foreground" href={url} isExternal>
           {element}
         </Link>
       )}
