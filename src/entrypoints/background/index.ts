@@ -21,7 +21,7 @@ import registerMessaging from './registerMessaging'
 import requestPermissions from './requestPermissions'
 
 export default defineBackground({
-  type: 'module',
+  type: import.meta.env.SAFARI ? undefined : 'module',
   main: () => void main(),
 })
 
