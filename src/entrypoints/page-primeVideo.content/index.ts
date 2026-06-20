@@ -65,26 +65,26 @@ async function main() {
     logger.log('titleText', titleText)
     logger.log('subtitleText', subtitleText)
 
+    const {
+      season,
+      episode,
+      subtitle,
+    }: {
+      season?: string
+      episode?: string
+      subtitle?: string
+    } =
+      (
+        subtitleText?.match(SUBTITLE_REGEXP) ??
+        subtitleText?.match(SUBTITLE_SHORT_REGEXP)
+      )?.groups ?? {}
+
+    const seasonNum = season ? Number(season) : -1
+    const episodeNum = episode ? Number(episode) : -1
+
     let catalogQueueItem: [string, Catalog] | undefined
 
     if (titleText) {
-      const {
-        season,
-        episode,
-        subtitle,
-      }: {
-        season?: string
-        episode?: string
-        subtitle?: string
-      } =
-        (
-          subtitleText?.match(SUBTITLE_REGEXP) ??
-          subtitleText?.match(SUBTITLE_SHORT_REGEXP)
-        )?.groups ?? {}
-
-      const seasonNum = season ? Number(season) : -1
-      const episodeNum = episode ? Number(episode) : -1
-
       catalogQueueItem = catalogQueue.find((val) => {
         if (val.type === 'MOVIE') {
           return val.title === titleText && !subtitleText
@@ -99,7 +99,7 @@ async function main() {
       })
     }
 
-    // DOMタイトル要素が無いプレイヤー (新UI/Safari) ではURLのentityIdで引き当てる
+    // タイトル文字列マッチに失敗したらURL内のentityIdで引き当てる
     if (!catalogQueueItem) {
       const entityId = window.location.pathname.match(
         /\/(?:gp\/video\/)?detail\/([^/?#]+)/
@@ -114,16 +114,46 @@ async function main() {
       }
     }
 
-    if (!catalogQueueItem) {
+    let id: string
+    let catalog: Catalog
+    let playbackUrls: PlaybackUrls | undefined
+
+    if (catalogQueueItem) {
+      id = catalogQueueItem[0]
+      catalog = catalogQueueItem[1]
+      playbackUrls = playbackUrlsQueue.get(id)
+    } else if (titleText) {
+      // API補足に失敗 (Content Blocker等) してもDOMのタイトル情報だけで動作させる
+      id =
+        window.location.pathname.match(
+          /\/(?:gp\/video\/)?detail\/([^/?#]+)/
+        )?.[1] ?? titleText
+
+      catalog = {
+        type: subtitleText ? 'EPISODE' : 'MOVIE',
+        entityType: subtitleText ? 'Episode' : 'Movie',
+        title: subtitle ?? titleText,
+        seriesTitle: subtitleText ? titleText : undefined,
+        seasonNumber: 0 <= seasonNum ? seasonNum : undefined,
+        episodeNumber: 0 <= episodeNum ? episodeNum : undefined,
+        originalLanguages: [],
+      }
+    } else {
       return null
     }
 
-    const id = catalogQueueItem[0]
-    const catalog = catalogQueueItem[1]
-    const playbackUrls = playbackUrlsQueue.get(id)
-
     if (!playbackUrls) {
-      return null
+      const videoDuration = document.querySelector<HTMLVideoElement>(
+        '.dv-player-fullscreen video'
+      )?.duration
+
+      if (!videoDuration || !Number.isFinite(videoDuration)) {
+        return null
+      }
+
+      playbackUrls = {
+        fullTitleDurationMs: videoDuration * 1000,
+      } as PlaybackUrls
     }
 
     return { id, playbackUrls, catalog }
