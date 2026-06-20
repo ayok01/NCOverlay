@@ -29,24 +29,6 @@
 		68259B1B2E79CB6A005BBC2A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 68259ADB2E79CB6A005BBC2A /* Assets.xcassets */; };
 		68259B1C2E79CB6A005BBC2A /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68259ADD2E79CB6A005BBC2A /* SafariWebExtensionHandler.swift */; };
 		68259B1D2E79CB6A005BBC2A /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68259ADD2E79CB6A005BBC2A /* SafariWebExtensionHandler.swift */; };
-		68259B382E79CB6B005BBC2A /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 68259B2F2E79CB6B005BBC2A /* background.js */; };
-		68259B392E79CB6B005BBC2A /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = 68259B302E79CB6B005BBC2A /* popup.html */; };
-		68259B3A2E79CB6B005BBC2A /* chunks in Resources */ = {isa = PBXBuildFile; fileRef = 68259B312E79CB6B005BBC2A /* chunks */; };
-		68259B3B2E79CB6B005BBC2A /* content-scripts in Resources */ = {isa = PBXBuildFile; fileRef = 68259B322E79CB6B005BBC2A /* content-scripts */; };
-		68259B3C2E79CB6B005BBC2A /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 68259B332E79CB6B005BBC2A /* icons */; };
-		68259B3D2E79CB6B005BBC2A /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 68259B342E79CB6B005BBC2A /* manifest.json */; };
-		68259B3E2E79CB6B005BBC2A /* _locales in Resources */ = {isa = PBXBuildFile; fileRef = 68259B352E79CB6B005BBC2A /* _locales */; };
-		68259B3F2E79CB6B005BBC2A /* sidepanel.html in Resources */ = {isa = PBXBuildFile; fileRef = 68259B362E79CB6B005BBC2A /* sidepanel.html */; };
-		68259B402E79CB6B005BBC2A /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 68259B372E79CB6B005BBC2A /* assets */; };
-		68259B412E79CB6B005BBC2A /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 68259B2F2E79CB6B005BBC2A /* background.js */; };
-		68259B422E79CB6B005BBC2A /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = 68259B302E79CB6B005BBC2A /* popup.html */; };
-		68259B432E79CB6B005BBC2A /* chunks in Resources */ = {isa = PBXBuildFile; fileRef = 68259B312E79CB6B005BBC2A /* chunks */; };
-		68259B442E79CB6B005BBC2A /* content-scripts in Resources */ = {isa = PBXBuildFile; fileRef = 68259B322E79CB6B005BBC2A /* content-scripts */; };
-		68259B452E79CB6B005BBC2A /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 68259B332E79CB6B005BBC2A /* icons */; };
-		68259B462E79CB6B005BBC2A /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 68259B342E79CB6B005BBC2A /* manifest.json */; };
-		68259B472E79CB6B005BBC2A /* _locales in Resources */ = {isa = PBXBuildFile; fileRef = 68259B352E79CB6B005BBC2A /* _locales */; };
-		68259B482E79CB6B005BBC2A /* sidepanel.html in Resources */ = {isa = PBXBuildFile; fileRef = 68259B362E79CB6B005BBC2A /* sidepanel.html */; };
-		68259B492E79CB6B005BBC2A /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 68259B372E79CB6B005BBC2A /* assets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -113,15 +95,7 @@
 		68259B052E79CB6A005BBC2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		68259B0A2E79CB6A005BBC2A /* NCOverlay for Safari Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "NCOverlay for Safari Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		68259B0F2E79CB6A005BBC2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		68259B2F2E79CB6B005BBC2A /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = "../../dist/safari-mv3/background.js"; sourceTree = "<group>"; };
-		68259B302E79CB6B005BBC2A /* popup.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = popup.html; path = "../../dist/safari-mv3/popup.html"; sourceTree = "<group>"; };
-		68259B312E79CB6B005BBC2A /* chunks */ = {isa = PBXFileReference; lastKnownFileType = folder; name = chunks; path = "../../dist/safari-mv3/chunks"; sourceTree = "<group>"; };
-		68259B322E79CB6B005BBC2A /* content-scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "content-scripts"; path = "../../dist/safari-mv3/content-scripts"; sourceTree = "<group>"; };
-		68259B332E79CB6B005BBC2A /* icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = icons; path = "../../dist/safari-mv3/icons"; sourceTree = "<group>"; };
-		68259B342E79CB6B005BBC2A /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = "../../dist/safari-mv3/manifest.json"; sourceTree = "<group>"; };
-		68259B352E79CB6B005BBC2A /* _locales */ = {isa = PBXFileReference; lastKnownFileType = folder; name = _locales; path = "../../dist/safari-mv3/_locales"; sourceTree = "<group>"; };
-		68259B362E79CB6B005BBC2A /* sidepanel.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = sidepanel.html; path = "../../dist/safari-mv3/sidepanel.html"; sourceTree = "<group>"; };
-		68259B372E79CB6B005BBC2A /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = "../../dist/safari-mv3/assets"; sourceTree = "<group>"; };
+		AABBCCDD000000000000F001 /* safari-mv3 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "safari-mv3"; path = "../../dist/safari-mv3"; sourceTree = "<group>"; };
 		68DDC8532E79CC4900D0B49B /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 		68DDC8542E79CC4900D0B49B /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
 		68DDC8552E79CC4900D0B49B /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
@@ -255,15 +229,7 @@
 		68259B2E2E79CB6B005BBC2A /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				68259B2F2E79CB6B005BBC2A /* background.js */,
-				68259B302E79CB6B005BBC2A /* popup.html */,
-				68259B312E79CB6B005BBC2A /* chunks */,
-				68259B322E79CB6B005BBC2A /* content-scripts */,
-				68259B332E79CB6B005BBC2A /* icons */,
-				68259B342E79CB6B005BBC2A /* manifest.json */,
-				68259B352E79CB6B005BBC2A /* _locales */,
-				68259B362E79CB6B005BBC2A /* sidepanel.html */,
-				68259B372E79CB6B005BBC2A /* assets */,
+				AABBCCDD000000000000F001 /* safari-mv3 */,
 			);
 			name = Resources;
 			path = "Shared (Extension)";
@@ -321,6 +287,7 @@
 				68259AFC2E79CB6A005BBC2A /* Sources */,
 				68259AFD2E79CB6A005BBC2A /* Frameworks */,
 				68259AFE2E79CB6A005BBC2A /* Resources */,
+				AABBCCDD000000000000F010 /* Copy WXT Safari build output */,
 			);
 			buildRules = (
 			);
@@ -340,6 +307,7 @@
 				68259B062E79CB6A005BBC2A /* Sources */,
 				68259B072E79CB6A005BBC2A /* Frameworks */,
 				68259B082E79CB6A005BBC2A /* Resources */,
+				AABBCCDD000000000000F011 /* Copy WXT Safari build output */,
 			);
 			buildRules = (
 			);
@@ -431,15 +399,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				68259B432E79CB6B005BBC2A /* chunks in Resources */,
-				68259B412E79CB6B005BBC2A /* background.js in Resources */,
-				68259B422E79CB6B005BBC2A /* popup.html in Resources */,
-				68259B492E79CB6B005BBC2A /* assets in Resources */,
-				68259B452E79CB6B005BBC2A /* icons in Resources */,
-				68259B462E79CB6B005BBC2A /* manifest.json in Resources */,
-				68259B472E79CB6B005BBC2A /* _locales in Resources */,
-				68259B482E79CB6B005BBC2A /* sidepanel.html in Resources */,
-				68259B442E79CB6B005BBC2A /* content-scripts in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -447,19 +406,51 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				68259B3A2E79CB6B005BBC2A /* chunks in Resources */,
-				68259B382E79CB6B005BBC2A /* background.js in Resources */,
-				68259B392E79CB6B005BBC2A /* popup.html in Resources */,
-				68259B402E79CB6B005BBC2A /* assets in Resources */,
-				68259B3C2E79CB6B005BBC2A /* icons in Resources */,
-				68259B3D2E79CB6B005BBC2A /* manifest.json in Resources */,
-				68259B3E2E79CB6B005BBC2A /* _locales in Resources */,
-				68259B3F2E79CB6B005BBC2A /* sidepanel.html in Resources */,
-				68259B3B2E79CB6B005BBC2A /* content-scripts in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		AABBCCDD000000000000F010 /* Copy WXT Safari build output */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy WXT Safari build output";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "set -e\nSRC=\"${SRCROOT}/../dist/safari-mv3\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nif [ ! -d \"$SRC\" ]; then\n  echo \"error: WXT Safari build output not found at $SRC — run 'bun run build:safari' first\"\n  exit 1\nfi\nmkdir -p \"$DEST\"\n/usr/bin/rsync -a --delete --exclude='Info.plist' --exclude='_CodeSignature' --exclude='embedded.provisionprofile' \"$SRC/\" \"$DEST/\"\n";
+		};
+		AABBCCDD000000000000F011 /* Copy WXT Safari build output */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy WXT Safari build output";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "set -e\nSRC=\"${SRCROOT}/../dist/safari-mv3\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nif [ ! -d \"$SRC\" ]; then\n  echo \"error: WXT Safari build output not found at $SRC — run 'bun run build:safari' first\"\n  exit 1\nfi\nmkdir -p \"$DEST\"\n/usr/bin/rsync -a --delete --exclude='Info.plist' --exclude='_CodeSignature' --exclude='embedded.provisionprofile' \"$SRC/\" \"$DEST/\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		68259ADE2E79CB6A005BBC2A /* Sources */ = {
